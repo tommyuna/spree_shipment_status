@@ -1,0 +1,4 @@
+
+<% shipment = order.shipments.last %>
+<%= Spree.t("after_shipped_states.#{shipment.after_shipped_state}").titleize if shipment.after_shipped_state %>
+

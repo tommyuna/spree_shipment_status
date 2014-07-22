@@ -1,0 +1,12 @@
+<% if shipment.shipped? and can? :update, shipment %>
+  <%= Spree.t("after_shipped_state")%>
+  <%= form_for :shipment do |f| %>
+    <%= f.select :after_shipped_state, options_for_select(Spree::Shipment.state_machines[:after_shipped_state].states.collect {|s| [Spree.t("after_shipped_states.#{s.name}"), s.value]}, :selected => shipment.after_shipped_state), {:include_blank => false}, :class => 'select2 fullwidth' %>
+    <br>
+    <br>
+    <%= link_to Spree.t(:select), '#', :class => 'button fa fa-arrow-right', :data => {'shipment-number' => shipment.number}, :id => "update_after_shipped_state" %>
+    <br>
+    <br>
+  <% end %>
+<% end %>
+

@@ -69,7 +69,7 @@ GIT
 PATH
   remote: .
   specs:
-    spree_extra_shipment_status (2.2.2)
+    spree_shipment_status (2.2.2)
       spree_core (~> 2.2.2)
 
 GEM
@@ -315,5 +315,5 @@ DEPENDENCIES
   simplecov
   spree!
   spree_auth_devise!
-  spree_extra_shipment_status!
+  spree_shipment_status!
   sqlite3

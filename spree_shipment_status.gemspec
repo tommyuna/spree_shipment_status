@@ -1,7 +1,7 @@
 # encoding: UTF-8
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
-  s.name        = 'spree_extra_shipment_status'
+  s.name        = 'spree_shipment_status'
   s.version     = '2.2.2'
   s.summary     = 'add more detailed shipment status'
   s.description = 'add new column after_shipped_state which contains more specific shipment status \
@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
 
   s.author    = 'Jonghun Yu'
   s.email     = 'jonghun.yu@luuv.it'
-  s.homepage  = 'https://github.com/casualsteps/spree_currency_converter'
+  s.homepage  = 'https://github.com/casualsteps/spree_shipment_status'
 
   #s.files       = `git ls-files`.split("\n")
   #s.test_files  = `git ls-files -- {test,spec,features}/*`.split("\n")

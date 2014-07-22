@@ -29,8 +29,8 @@ require 'spree/testing_support/controller_requests'
 require 'spree/testing_support/authorization_helpers'
 require 'spree/testing_support/url_helpers'
 
-# Requires factories defined in lib/spree_extra_shipment_status/factories.rb
-require 'spree_extra_shipment_status/factories'
+# Requires factories defined in lib/spree_shipment_status/factories.rb
+require 'spree_shipment_status/factories'
 
 RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods

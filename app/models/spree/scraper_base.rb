@@ -4,7 +4,7 @@ module Spree
     attr_reader :login_info, :addresses, :selectors
 
     def initialize
-      shipping_config = YAML.load_file("spree-extensions/spree_extra_shipment_status/config/shipping_update.yml")
+      shipping_config = YAML.load_file("spree-extensions/spree_shipment_status/config/shipping_update.yml")
       @config = shipping_config["#{ENV['RAILS_ENV'] || "development"}"]
     end
 

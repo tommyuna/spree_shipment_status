@@ -8,7 +8,7 @@ namespace :shipping_update do
   task amz_shipping_scraping: :environment do
     begin
     scraper = Spree::GmailScraper.new
-    raise "Login failed!" unless scraper.login(scraper.login_info['userid'], scraper.login_info['password'])
+    raise "amz_shipping_scraping: Login failed! #{scraper.login_info['userid']}/#{scraper.login_info['password']}" unless scraper.login(scraper.login_info['userid'], scraper.login_info['password'])
 
     #amazon shipping confirm
     query = ['FROM', scraper.addresses['amz_shipping_confirm'],
@@ -19,9 +19,9 @@ namespace :shipping_update do
     uids.each do |uid|
       doc = scraper.get_html_doc uid
       store_order_id = scraper.get_single_text(doc, scraper.selectors['amz_shipping_confirm']).text
-      raise "not found order id from amazon shipping email" if store_order_id == nil
+      raise "amz_shipping_scraping: not found order id from amazon shipping email" if store_order_id == nil
       order = Spree::Order.where(store: 'amazon').where(store_order_id: store_order_id).first
-      raise "not found order" if order == nil
+      raise "amz_shipping_scraping: not found order" if order == nil
       order.shipments.each { |shipment|
         shipment.shipment_confirm_email_uid = uid
         shipment.ship!

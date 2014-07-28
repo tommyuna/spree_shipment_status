@@ -3,7 +3,7 @@ module Spree
     def notify_email(subject, text)
       @content = text
       subject = subject
-      mail(to: 'hello@luuv.it', from: from_address, subject: subject)
+      mail(to: 'jonghun.yu@gosnapshop', from: from_address, subject: subject)
     end
   end
 end

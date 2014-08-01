@@ -44,4 +44,12 @@ Spree::Shipment.class_eval do
     self.complete_ship!
   end
 
+  def get_shipment_status
+    if self.canceled?
+      return "canceled"
+    else
+      return self.after_shipped_state
+    end
+  end
+
 end   #class_eval

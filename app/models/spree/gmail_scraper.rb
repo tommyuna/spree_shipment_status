@@ -7,7 +7,8 @@ module Spree
     def initialize
       super
       @imap = Net::IMAP.new('imap.gmail.com', 993, true)
-      @login_info = get_config 'login.gmail'
+      @login_info['userid'] = ENV['CONFIRM_EMAIL']
+      @login_info['password'] = ENV['CONFIRM_EMAIL_PASSWORD']
       @addresses = get_config 'email.gmail.address'
       @selectors = get_config 'email.gmail.selector'
     end

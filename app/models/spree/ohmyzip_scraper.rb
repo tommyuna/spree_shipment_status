@@ -6,7 +6,8 @@ module Spree
     def initialize
       super
       @agent = Mechanize.new
-      @login_info = get_config 'login.ohmyzip'
+      @login_info['userid'] = ENV['OHMYZIP_USERID']
+      @login_info['password'] = ENV['OHMYZIP_PASSWORD']
       @addresses = get_config 'webpage.ohmyzip.address'
       @selectors = get_config 'webpage.ohmyzip.selector'
     end

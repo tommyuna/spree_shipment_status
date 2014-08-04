@@ -8,6 +8,6 @@ ko:
       overseas_delivery: 국제배송중
       customs: 국제배송완료 및 통관중
       domestic_delivery: 국내배송중
-      delivered: 제품은 잘받으셨나요?
+      delivered: 국내배송완료
       canceled: 취소됨
 

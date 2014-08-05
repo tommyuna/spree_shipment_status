@@ -16,12 +16,13 @@ namespace :shipping_update do
     last_processed_shipment_email = Spree::Shipment.where.not(state: 'shipped').order('shipment_confirm_email_uid DESC').first.shipment_confirm_email_uid
     last_processed_shipment_email = 0 if last_processed_shipment_email == nil
     uids = scraper.get_uid_list(query).find_all { |uid| uid > last_processed_shipment_email }
+    return if uids == nil 
     uids.each do |uid|
       doc = scraper.get_html_doc uid
       continue if doc == nil
-      store_order_id = scraper.get_single_text(doc, scraper.selectors['amz_shipping_confirm']).text
+      store_order_id = scraper.get_single_text(doc, scraper.selectors['amz_shipping_confirm'])
       raise "amz_shipping_scraping: not found order id from amazon shipping email" if store_order_id == nil
-      shipments = Spree::Shipment.where(store: 'amazon').where(store_order_id: store_order_id)
+      shipments = Spree::Shipment.where(store: 'amazon').where(store_order_id: store_order_id.text)
 
       #below test causes too many errors
       #raise "amz_shipping_scraping: not found shipment" if shipments == nil
@@ -49,15 +50,17 @@ namespace :shipping_update do
     last_processed_shipment_email = Spree::Shipment.where(after_shipped_state: 'local_delivery').order('shipment_confirm_email_uid DESC').first.shipment_confirm_email_uid
     last_processed_shipment_email = 0 if last_processed_shipment_email == nil
     uids = scraper.get_uid_list(query).find_all { |uid| uid > last_processed_shipment_email }
+    return if uids == nil
     uids.each do |uid|
       doc = scraper.get_html_doc uid
       continue if doc == nil
       order_id = scraper.get_single_text(doc, scraper.selectors['package_tracker_confirm']).text
       raise "not found order id from amazon shipping email" if order_id == nil
-      shipments = Spree::Shipment.where(store: 'amazon').where(number: order_id)
+      shipments = Spree::Shipment.where(store: 'amazon').where(number: order_id) unless order_id.length == 0
 
       #below test causes too many errors
       #raise "not found shipment" if shipment == nil
+      continue if shipments == nil
       shipments.each { |shipment|
         shipment.shipment_confirm_email_uid = uid
         shipment.complete_local_delivery

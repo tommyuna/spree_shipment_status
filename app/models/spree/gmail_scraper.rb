@@ -28,7 +28,7 @@ module Spree
       if mail == nil
         return nil
       else
-        return Nokogiri::HTML(mail.html_part.decoded)
+        return Nokogiri::HTML(mail.body.decoded)
       end
     end
 

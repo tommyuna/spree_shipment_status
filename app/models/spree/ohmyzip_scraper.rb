@@ -26,7 +26,12 @@ module Spree
     end
 
     def get_html_doc address
-      Nokogiri::HTML(@agent.get(address).body)
+      body = @agent.get(address).body
+      unless body == nil
+        return Nokogiri::HTML(@agent.get(address).body)
+      else
+        return nil
+      end
     end
   end
 end

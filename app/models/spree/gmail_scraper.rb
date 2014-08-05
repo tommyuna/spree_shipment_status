@@ -25,7 +25,7 @@ module Spree
 
     def get_html_doc uid
       mail = Mail.new(@imap.uid_fetch(uid, "RFC822")[0].attr["RFC822"])
-      Nokogiri::HTML(mail.html_part.decoded)
+      return Nokogiri::HTML(mail.html_part.decoded) unless mail == nil
     end
 
     def get_uid_list query

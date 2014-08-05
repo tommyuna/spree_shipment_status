@@ -18,6 +18,7 @@ namespace :shipping_update do
     uids = scraper.get_uid_list(query).find_all { |uid| uid > last_processed_shipment_email }
     uids.each do |uid|
       doc = scraper.get_html_doc uid
+      continue if doc == nil
       store_order_id = scraper.get_single_text(doc, scraper.selectors['amz_shipping_confirm']).text
       raise "amz_shipping_scraping: not found order id from amazon shipping email" if store_order_id == nil
       shipments = Spree::Shipment.where(store: 'amazon').where(store_order_id: store_order_id)
@@ -50,6 +51,7 @@ namespace :shipping_update do
     uids = scraper.get_uid_list(query).find_all { |uid| uid > last_processed_shipment_email }
     uids.each do |uid|
       doc = scraper.get_html_doc uid
+      continue if doc == nil
       order_id = scraper.get_single_text(doc, scraper.selectors['package_tracker_confirm']).text
       raise "not found order id from amazon shipping email" if order_id == nil
       shipments = Spree::Shipment.where(store: 'amazon').where(number: order_id)
@@ -121,6 +123,7 @@ namespace :shipping_update do
       Spree::Shipment.where.not(tracking_id: nil).where.not(after_shipped_state: :delivered).each do |shipment|
         tracking_page = scraper.addresses['tracking_page'] + shipment.tracking_id
         doc = scraper.get_html_doc tracking_page
+        raise "tracking_page not found" if doc == nil
         img = scraper.get_single_text doc, scraper.selectors['status']
         case img['src']
         when scraper.status['step3']

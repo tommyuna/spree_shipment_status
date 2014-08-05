@@ -20,9 +20,11 @@ namespace :shipping_update do
       doc = scraper.get_html_doc uid
       store_order_id = scraper.get_single_text(doc, scraper.selectors['amz_shipping_confirm']).text
       raise "amz_shipping_scraping: not found order id from amazon shipping email" if store_order_id == nil
-      order = Spree::Order.where(store: 'amazon').where(store_order_id: store_order_id).first
-      raise "amz_shipping_scraping: not found order" if order == nil
-      order.shipments.each { |shipment|
+      shipments = Spree::Shipment.where(store: 'amazon').where(store_order_id: store_order_id)
+
+      #below test causes too many errors
+      #raise "amz_shipping_scraping: not found shipment" if shipments == nil
+      shipments.each { |shipment|
         shipment.shipment_confirm_email_uid = uid
         shipment.ship!
       }
@@ -50,9 +52,11 @@ namespace :shipping_update do
       doc = scraper.get_html_doc uid
       order_id = scraper.get_single_text(doc, scraper.selectors['package_tracker_confirm']).text
       raise "not found order id from amazon shipping email" if order_id == nil
-      order = Spree::Order.where(store: 'amazon').where(number: order_id)
-      raise "not found order" if order == nil
-      order.shipments.each { |shipment|
+      shipments = Spree::Shipment.where(store: 'amazon').where(number: order_id)
+
+      #below test causes too many errors
+      #raise "not found shipment" if shipment == nil
+      shipments.each { |shipment|
         shipment.shipment_confirm_email_uid = uid
         shipment.complete_local_delivery
         shipment.save
@@ -90,9 +94,10 @@ namespace :shipping_update do
             store = store_doc.text
             store_order_id = store_order_id_doc.text
           end
-          order = Spree::Order.where(store: store).where(store_order_id: store_order_id).first
-          raise "order not found" if order == nil
-          order.shipments.each do |shipment|
+          shipments = Spree::Shipment.where(store: store).where(store_order_id: store_order_id)
+
+          #raise "shipments not found" if shipments == nil
+          shipments.each do |shipment|
             unless shipment.after_shipped_state == :overseas_delivery
               shipment.start_oversea_delivery
               shipment.ohmyzip_id = @shipment_id

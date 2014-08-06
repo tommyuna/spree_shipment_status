@@ -6,5 +6,11 @@ Spree::Core::Engine.routes.append do
         put :update_after_shipped_state
       end
     end
+
+    resources :orders do
+      member do
+        put :update_store_order_id
+      end
+    end
   end
 end

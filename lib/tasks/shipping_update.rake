@@ -28,7 +28,7 @@ namespace :shipping_update do
       #raise "amz_shipping_scraping: not found shipment" if shipments == nil
       shipments.each { |shipment|
         shipment.shipment_confirm_email_uid = uid
-        shipment.ship!
+        shipment.ship! unless shipment.state == 'shipped'
       }
     end
     rescue Exception => e

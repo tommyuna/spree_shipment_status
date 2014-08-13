@@ -22,7 +22,7 @@ namespace :shipping_update do
       next if doc == nil
       store_order_id = scraper.get_single_text(doc, scraper.selectors['amz_shipping_confirm'])
       raise "amz_shipping_scraping: not found order id from amazon shipping email" if store_order_id == nil
-      shipments = Spree::Shipment.where(store: 'amazon').where(store_order_id: store_order_id.text)
+      shipments = Spree::Shipment.where(store: 'www.amazon.com').where(store_order_id: store_order_id.text)
 
       #below test causes too many errors
       #raise "amz_shipping_scraping: not found shipment" if shipments == nil
@@ -56,7 +56,7 @@ namespace :shipping_update do
       next if doc == nil
       order_id = scraper.get_single_text(doc, scraper.selectors['package_tracker_confirm']).text
       raise "not found order id from amazon shipping email" if order_id == nil
-      shipments = Spree::Shipment.where(store: 'amazon').where(number: order_id) unless order_id.length == 0
+      shipments = Spree::Shipment.where(store: 'www.amazon.com').where(number: order_id) unless order_id.length == 0
 
       #below test causes too many errors
       #raise "not found shipment" if shipment == nil

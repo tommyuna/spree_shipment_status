@@ -103,6 +103,7 @@ namespace :shipping_update do
             store_order_id = store_order_id_doc.text
           end
           store = 'amazon' if store == 'www.amazon.com'
+          Rails.logger.debug "store: #{store}"
           shipments = Spree::Shipment.where(store: store).where(store_order_id: store_order_id)
 
           #raise "shipments not found" if shipments == nil

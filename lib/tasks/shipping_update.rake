@@ -7,6 +7,7 @@ namespace :shipping_update do
   desc "shipping status update from amazon shipping confirm email"
   task amz_shipping_scraping: :environment do
     begin
+    Rails.logger.debug "start amz_shipping_scraping"
     scraper = Spree::GmailScraper.new
     raise "amz_shipping_scraping: Login failed! #{scraper.login_info['userid']}/#{scraper.login_info['password']}" unless scraper.login(scraper.login_info['userid'], scraper.login_info['password'])
 
@@ -41,6 +42,7 @@ namespace :shipping_update do
   desc "shipping status update from package tracker email"
   task package_tracker_scraping: :environment do
     begin
+    Rails.logger.debug "start package_tracker_scraping"
     scraper = Spree::GmailScraper.new
     raise "Login failed!" unless scraper.login(scraper.login_info['userid'], scraper.login_info['password'])
 
@@ -77,6 +79,7 @@ namespace :shipping_update do
   desc "shipping status update from ohmyzip web-page"
   task ohmyzip_scraping: :environment do
     begin
+      Rails.logger.debug "start ohmyzip_scraping"
       #scraping from ohmyzip
       scraper = Spree::OhmyzipScraper.new
       raise "Login failed!" unless scraper.login(scraper.login_info['userid'], scraper.login_info['password'])
@@ -104,6 +107,9 @@ namespace :shipping_update do
 
           #raise "shipments not found" if shipments == nil
           shipments.each do |shipment|
+            Rails.logger.debug "shipment id: #{shipment.id}"
+            Rails.logger.debug "ohmyzip id: #{@shipment_id}"
+            Rails.logger.debug "tracking id: #{@tracking_id}"
             unless shipment.after_shipped_state == :overseas_delivery
               #if complete_local_delivery is missed, update it firset
               if shipment.after_shipped_state == :local_delivery
@@ -127,6 +133,7 @@ namespace :shipping_update do
   desc "shipping status update from warpex tracker page"
   task warpex_scraping: :environment do
     begin
+      Rails.logger.debug "start warpex_scraping"
       scraper = Spree::WarpexScraper.new
       Spree::Shipment.where.not(tracking_id: nil).where.not(after_shipped_state: :delivered).each do |shipment|
         tracking_page = scraper.addresses['tracking_page'] + shipment.tracking_id

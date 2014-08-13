@@ -141,7 +141,7 @@ namespace :shipping_update do
         when scraper.status['step5']
           shipment.complete_domestic_delivery
         else
-          if img['src'] != craper.status['step1']  and img['src'] != craper.status['step2']
+          if img['src'] != scraper.status['step1']  and img['src'] != scraper.status['step2']
             raise "scraping error"
           end
         end

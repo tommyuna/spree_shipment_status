@@ -111,9 +111,9 @@ namespace :shipping_update do
             Rails.logger.info "shipment id: #{shipment.id}"
             Rails.logger.info "ohmyzip id: #{@shipment_id}"
             Rails.logger.info "tracking id: #{@tracking_id}"
-            unless shipment.after_shipped_state == :overseas_delivery
+            unless shipment.after_shipped_state == 'overseas_delivery'
               #if complete_local_delivery is missed, update it firset
-              if shipment.after_shipped_state == :local_delivery
+              if shipment.after_shipped_state == 'local_delivery'
                 shipment.complete_local_delivery
               end
               shipment.start_oversea_delivery

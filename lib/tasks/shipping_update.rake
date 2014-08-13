@@ -104,6 +104,10 @@ namespace :shipping_update do
           #raise "shipments not found" if shipments == nil
           shipments.each do |shipment|
             unless shipment.after_shipped_state == :overseas_delivery
+              #if complete_local_delivery is missed, update it firset
+              if shipment.after_shipped_state == :local_delivery
+                shipment.complete_local_delivery
+              end
               shipment.start_oversea_delivery
               shipment.ohmyzip_id = @shipment_id
               shipment.tracking_id = @tracking_id
@@ -132,7 +136,6 @@ namespace :shipping_update do
         when scraper.status['step3']
           shipment.complete_oversea_delivery
         when scraper.status['step4']
-        when config['tracking_page_step4']
           shipment.start_domestic_delivery
         when scraper.status['step5']
           shipment.complete_domestic_delivery

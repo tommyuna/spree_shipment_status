@@ -18,13 +18,13 @@ Spree::Shipment.class_eval do
       transition from: :local_delivery_complete, to: :overseas_delivery
     end
     event :complete_oversea_delivery do
-      transition from: :overseas_delivery, to: :customs
+      transition from: [:local_delivery_complete, :overseas_delivery], to: :customs
     end
     event :start_domestic_delivery do
       transition from: :customs, to: :domestic_delivery
     end
     event :complete_domestic_delivery do
-      transition from: :domestic_delivery, to: :delivered
+      transition from: [:customs, :domestic_delivery], to: :delivered
     end
     event :backward_previous_after_shipped_state do
       transition  :delivered => :domestic_delivery,

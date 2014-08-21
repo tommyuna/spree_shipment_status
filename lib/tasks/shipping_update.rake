@@ -157,6 +157,7 @@ namespace :shipping_update do
           end
         end
         shipment.save
+        Rails.logger.info "shipment:#{shipment.after_shipped_state}"
       end
     rescue Exception => e
       Rails.logger.error "error occured: #{$!}"

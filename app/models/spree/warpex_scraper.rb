@@ -6,7 +6,6 @@ module Spree
     attr_reader   :status
     def initialize
       super
-      @agent = Mechanize.new
       @addresses = get_config 'webpage.warpex.address'
       @selectors = get_config 'webpage.warpex.selector'
       @status = get_config 'webpage.warpex.status'

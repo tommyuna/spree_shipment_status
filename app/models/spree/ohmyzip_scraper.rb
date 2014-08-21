@@ -6,6 +6,7 @@ module Spree
     def initialize
       super
       @agent = Mechanize.new
+      @agent.user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.143 Safari/537.36'
       @login_info['userid'] = ENV['OHMYZIP_USERID']
       @login_info['password'] = ENV['OHMYZIP_PASSWORD']
       @addresses = get_config 'webpage.ohmyzip.address'
@@ -26,7 +27,6 @@ module Spree
     end
 
     def get_html_doc address
-      @agent.user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.143 Safari/537.36' if @agent.user_agent == nil
       @retry_cnt = 0
       begin
         @body = @agent.get(address).body

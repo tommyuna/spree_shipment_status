@@ -14,12 +14,22 @@ module Spree
     end
 
     def login id, password
+      @retry_cnt = 0
+      begin
       page = @agent.post('http://www.ohmyzip.com/account/mem_process.php',
                          { "shop_action" => "member_login",
                            "ajax_login"  => "on",
                            "member_id"   => id,
                            "member_pw"   => password,
                            "login_url"   => "../account/"})
+      rescue Net::ReadTimeout
+        if @retry_cnt < 5 then
+          @retry_cnt += 1
+          Rails.logger.info "retry #{@retry_cnt}times"
+          sleep(3)
+          retry
+        end
+      end
       if page.body == 'idpwErr'
         return false
       end

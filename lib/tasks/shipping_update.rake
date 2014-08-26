@@ -83,7 +83,7 @@ namespace :shipping_update do
       #scraping from ohmyzip
       scraper = Spree::OhmyzipScraper.new
       raise "Login failed!" unless scraper.login(scraper.login_info['userid'], scraper.login_info['password'])
-
+      Rails.logger.info "ohmyzip login!"
       order_list_page = scraper.get_html_doc scraper.addresses['order_list']
       raise "order list page not found" if order_list_page == nil
       scraper.get_multiple_text(order_list_page, scraper.selectors['order_list_row']).each do |row|

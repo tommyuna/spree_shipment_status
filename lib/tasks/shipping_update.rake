@@ -1,7 +1,7 @@
 
 namespace :shipping_update do
   def send_notify_email exception
-    Spree::NotifyMailer.notify_email('failed to update shipping status', exception.backtrace).deliver
+    Spree::NotifyMailer.notify_email("failed to update shipping status:[#{exception.message}]", exception.backtrace).deliver
   end
 
   desc "shipping status update from amazon shipping confirm email"
@@ -14,23 +14,34 @@ namespace :shipping_update do
     #amazon shipping confirm
     query = ['FROM', scraper.addresses['amz_shipping_confirm'],
              'SINCE', scraper.get_imap_date(-30)]
-    last_processed_shipment_email = Spree::Shipment.where.not(state: 'shipped').order('shipment_confirm_email_uid DESC').first.shipment_confirm_email_uid
+    last_processed_shipment_email = Spree::Shipment.where.not(shipment_confirm_email_uid: nil).order('shipment_confirm_email_uid DESC').first.shipment_confirm_email_uid
     last_processed_shipment_email = 0 if last_processed_shipment_email == nil
     uids = scraper.get_uid_list(query).find_all { |uid| uid > last_processed_shipment_email }
-    return if uids == nil 
+    Rails.logger.info "last_processed_shipment_email[#{last_processed_shipment_email}]"
+    return if uids.empty?
     uids.each do |uid|
+      Rails.logger.info "#{uid}:-------------------------------------------------"
       doc = scraper.get_html_doc uid
       next if doc == nil
-      store_order_id = scraper.get_single_text(doc, scraper.selectors['amz_shipping_confirm'])
-      raise "amz_shipping_scraping: not found order id from amazon shipping email" if store_order_id == nil
-      shipments = Spree::Shipment.where(store: 'amazon').where(store_order_id: store_order_id.text)
-
-      #below test causes too many errors
-      #raise "amz_shipping_scraping: not found shipment" if shipments == nil
-      shipments.each { |shipment|
-        shipment.shipment_confirm_email_uid = uid
-        shipment.ship! unless shipment.state == 'shipped'
-      }
+      store_order_id = scraper.get_multiple_text(doc, scraper.selectors['amz_shipping_confirm'])
+      raise "amz_shipping_scraping: not found order id from amazon shipping email" if store_order_id.empty?
+      store_order_id.each do |order_id|
+        @amazon_id = nil
+        if order_id.text =~ /\d{3}-\d{7}-\d{7}*/
+          @amazon_id = order_id.text.slice(0, 19)
+        else
+          next
+        end
+        Rails.logger.info "amazon order id[#{@amazon_id}]"
+        shipments = Spree::Shipment.where(store: 'amazon').where(store_order_id: @amazon_id)
+        #below test causes too many errors
+        #raise "amz_shipping_scraping: not found shipment" if shipments == nil
+        shipments.each { |shipment|
+          Rails.logger.info "shipment#{shipment.id} is updated"
+          shipment.shipment_confirm_email_uid = uid
+          shipment.ship! unless shipment.state == 'shipped'
+        }
+      end
     end
     rescue Exception => e
       Rails.logger.error "error occured: #{$!}"

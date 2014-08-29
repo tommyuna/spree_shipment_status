@@ -18,7 +18,6 @@ namespace :shipping_update do
     last_processed_shipment_email = 0 if last_processed_shipment_email == nil
     uids = scraper.get_uid_list(query).find_all { |uid| uid > last_processed_shipment_email }
     Rails.logger.info "last_processed_shipment_email[#{last_processed_shipment_email}]"
-    return if uids.empty?
     uids.each do |uid|
       Rails.logger.info "#{uid}:-------------------------------------------------"
       doc = scraper.get_html_doc uid

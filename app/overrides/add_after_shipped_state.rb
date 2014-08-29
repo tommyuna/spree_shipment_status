@@ -6,6 +6,6 @@ Deface::Override.new( :virtual_path => 'spree/admin/orders/_shipment',
 
 Deface::Override.new( :virtual_path => 'spree/users/show',
                       :name         => 'replace_user_shipment_status',
-                      :replace      => 'p[class="order-status"]',
+                :replace_contents   => '.order-status',
                       :partial      => 'spree/users/user_shipment_status',
                       :disabled     => false)

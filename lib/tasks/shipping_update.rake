@@ -107,7 +107,7 @@ namespace :shipping_update do
           store_doc = scraper.get_single_text(order_detail_doc, scraper.selectors['order_detail_store'])
           store_order_id_doc = scraper.get_single_text(order_detail_doc, scraper.selectors['order_detail_store_order_id'])
           if store_doc == nil or store_order_id_doc == nil
-            raise "scraping error order detail"
+            raise "scraping error order detail#{scraper.addresses['order_detail'] + @shipment_id}"
           else
             store = store_doc.text
             store_order_id = store_order_id_doc.text

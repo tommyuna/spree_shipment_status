@@ -33,11 +33,14 @@ namespace :shipping_update do
         end
         Rails.logger.info "amazon order id[#{@amazon_id}]"
         shipments = Spree::Shipment.where(store: 'amazon').where(store_order_id: @amazon_id)
-        #below test causes too many errors
-        #raise "amz_shipping_scraping: not found shipment" if shipments == nil
         shipments.each { |shipment|
           Rails.logger.info "shipment#{shipment.id} is updated"
           shipment.shipment_confirm_email_uid = uid
+          if shipment.state == 'pending'
+            shipment.order.payments.each do |p|
+              p.capture! if p.state = 'pending'
+            end
+          end
           shipment.ship! unless shipment.state == 'shipped'
         }
       end

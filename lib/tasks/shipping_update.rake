@@ -105,6 +105,7 @@ namespace :shipping_update do
         unless shipment_id_doc == nil
           @shipment_id = shipment_id_doc.text
           @tracking_id = tracking_id_doc.text unless tracking_id_doc == nil
+          Rails.logger.info "shipment id:#{@shipment_id}/ tracking id:#{@tracking_id}"
           order_detail_doc = scraper.get_html_doc(scraper.addresses['order_detail'] + @shipment_id)
           raise "order detail page not found" if order_detail_doc == nil
           store_doc = scraper.get_single_text(order_detail_doc, scraper.selectors['order_detail_store'])
@@ -114,6 +115,7 @@ namespace :shipping_update do
           else
             store = store_doc.text
             store_order_id = store_order_id_doc.text
+            Rails.logger.info "#{store}/#{store_order_id}"
           end
           store = 'amazon' if store == 'www.amazon.com'
           Rails.logger.info "store: #{store}"

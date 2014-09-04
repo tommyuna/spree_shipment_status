@@ -30,7 +30,8 @@ module Spree
           retry
         end
       end
-      if page.body == 'idpwErr'
+      Rails.logger.info "#{page.body}"
+      if page.body == 'idpwErr' or page.body == 'idErr'
         return false
       end
       return true

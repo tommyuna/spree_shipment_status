@@ -38,7 +38,7 @@ namespace :shipping_update do
           shipment.shipment_confirm_email_uid = uid
           if shipment.state == 'pending'
             shipment.order.payments.each do |p|
-              p.capture! if p.state = 'pending'
+              p.capture! if p.state == 'pending'
             end
           end
           shipment.ship! unless shipment.state == 'shipped'

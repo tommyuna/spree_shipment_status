@@ -92,9 +92,9 @@ namespace :shipping_update do
   desc "shipping status update from ohmyzip web-page"
   task ohmyzip_scraping: :environment do
     begin
-      Rails.logger.info "start ohmyzip_scraping"
       #scraping from ohmyzip
       scraper = Spree::OhmyzipScraper.new
+      Rails.logger.info "start ohmyzip_scraping #{scraper.login_info['userid']}/#{scraper.login_info['password']}"
       raise "Login failed!" unless scraper.login(scraper.login_info['userid'], scraper.login_info['password'])
       Rails.logger.info "ohmyzip login!"
       order_list_page = scraper.get_html_doc scraper.addresses['order_list']
@@ -114,12 +114,12 @@ namespace :shipping_update do
             raise "scraping error order detail#{scraper.addresses['order_detail'] + @shipment_id}"
           else
             store = store_doc.text
-            store_order_id = store_order_id_doc.text
+            store_order_id = store_order_id_doc.text.split(',')
             Rails.logger.info "#{store}/#{store_order_id}"
           end
           store = 'amazon' if store == 'www.amazon.com'
           Rails.logger.info "store: #{store}"
-          shipments = Spree::Shipment.where(store: store).where(store_order_id: store_order_id)
+          shipments = Spree::Shipment.where(store: store).where('store_order_id in (?)', store_order_id)
 
           #raise "shipments not found" if shipments == nil
           shipments.each do |shipment|

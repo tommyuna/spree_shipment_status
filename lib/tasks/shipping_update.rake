@@ -39,6 +39,7 @@ namespace :shipping_update do
           if shipment.state == 'pending'
             shipment.order.payments.each do |p|
               p.capture! if p.state == 'pending'
+              sleep 2
             end
           end
           shipment.ship! unless shipment.state == 'shipped'

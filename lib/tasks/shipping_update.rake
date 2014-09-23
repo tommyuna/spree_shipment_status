@@ -42,7 +42,7 @@ namespace :shipping_update do
               sleep 5
             end
           end
-          shipment.ship! unless shipment.state == 'shipped'
+          shipment.ship! unless shipment.state == 'shipped' and shipment.state == 'pending'
         }
       end
     end

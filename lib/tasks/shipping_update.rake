@@ -16,7 +16,7 @@ namespace :shipping_update do
              'SINCE', scraper.get_imap_date(-30)]
     last_processed_shipment_email = Spree::Shipment.where.not(shipment_confirm_email_uid: nil).order('shipment_confirm_email_uid DESC').first.shipment_confirm_email_uid
     last_processed_shipment_email = 0 if last_processed_shipment_email == nil
-    uids = scraper.get_uid_list(query).find_all { |uid| uid > last_processed_shipment_email }
+    uids = scraper.get_uid_list(query).find_all { |uid| uid > last_processed_shipment_email - 30 }
     Rails.logger.info "last_processed_shipment_email[#{last_processed_shipment_email}]"
     uids.each do |uid|
       Rails.logger.info "#{uid}:-------------------------------------------------"
@@ -35,14 +35,16 @@ namespace :shipping_update do
         shipments = Spree::Shipment.where(store: 'amazon').where(store_order_id: @amazon_id)
         shipments.each { |shipment|
           Rails.logger.info "shipment#{shipment.id} is updated"
-          shipment.shipment_confirm_email_uid = uid
           if shipment.state == 'pending'
             shipment.order.payments.each do |p|
               p.capture! if p.state == 'pending'
               sleep 5
             end
           end
-          shipment.ship! unless shipment.state == 'shipped' or shipment.state == 'pending'
+          unless shipment.state == 'shipped' or shipment.state == 'pending'
+            shipment.shipment_confirm_email_uid = uid
+            shipment.ship!
+          end
         }
       end
     end

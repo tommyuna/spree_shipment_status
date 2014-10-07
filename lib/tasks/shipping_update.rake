@@ -147,6 +147,7 @@ namespace :shipping_update do
       scraper = Spree::WarpexScraper.new
       Spree::Shipment.where.not(tracking_id: nil).where.not(after_shipped_state: :delivered).each do |shipment|
         Rails.logger.info "shipment #{shipment.id}"
+        next if shipment.state == 'canceled'
         tracking_page = scraper.addresses['tracking_page'] + shipment.tracking_id
         Rails.logger.info "tracking_page #{tracking_page}"
         doc = scraper.get_html_doc tracking_page

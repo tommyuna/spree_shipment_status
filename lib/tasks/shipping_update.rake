@@ -171,7 +171,7 @@ namespace :shipping_update do
           shipment.complete_domestic_delivery
         else
           if img['src'] != scraper.status['step1']  and img['src'] != scraper.status['step2']
-            raise "scraping error"
+            raise "scraping error:image source#{img['src']}"
           end
         end
         shipment.save

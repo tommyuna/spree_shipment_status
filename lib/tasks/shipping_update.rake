@@ -37,7 +37,8 @@ namespace :shipping_update do
           Rails.logger.info "shipment#{shipment.id} is updated"
           unless shipment.state == 'shipped'
             shipment.shipment_confirm_email_uid = uid
-            shipment.ship!
+            shipment.complete_ship
+            shipment.save
           end
         }
       end

@@ -34,8 +34,8 @@ namespace :shipping_update do
         Rails.logger.info "amazon order id[#{@amazon_id}]"
         shipments = Spree::Shipment.where(store: 'amazon').where(store_order_id: @amazon_id)
         shipments.each { |shipment|
-          Rails.logger.info "shipment#{shipment.id} is updated"
-          unless shipment.state == 'shipped'
+          Rails.logger.info "shipment:[#{shipment.id}] is updated"
+          unless shipment.state == 'shipped' or shipment.state == 'canceled'
             shipment.shipment_confirm_email_uid = uid
             shipment.complete_ship
             shipment.save

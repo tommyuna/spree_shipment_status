@@ -35,13 +35,7 @@ namespace :shipping_update do
         shipments = Spree::Shipment.where(store: 'amazon').where(store_order_id: @amazon_id)
         shipments.each { |shipment|
           Rails.logger.info "shipment#{shipment.id} is updated"
-          if shipment.state == 'pending'
-            shipment.order.payments.each do |p|
-              p.capture! if p.state == 'pending'
-              sleep 5
-            end
-          end
-          unless shipment.state == 'shipped' or shipment.state == 'pending'
+          unless shipment.state == 'shipped'
             shipment.shipment_confirm_email_uid = uid
             shipment.ship!
           end
@@ -130,10 +124,6 @@ namespace :shipping_update do
             Rails.logger.info "ohmyzip id: #{@shipment_id}"
             Rails.logger.info "tracking id: #{@tracking_id}"
             unless shipment.after_shipped_state == 'overseas_delivery'
-              #if complete_local_delivery is missed, update it firset
-              if shipment.after_shipped_state == 'local_delivery'
-                shipment.complete_local_delivery
-              end
               shipment.start_oversea_delivery
               shipment.ohmyzip_id = @shipment_id
               shipment.tracking_id = @tracking_id

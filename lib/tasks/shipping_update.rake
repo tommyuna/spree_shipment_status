@@ -145,7 +145,7 @@ namespace :shipping_update do
     begin
       Rails.logger.info "start warpex_scraping"
       scraper = Spree::WarpexScraper.new
-      Spree::Shipment.where.not(tracking_id: nil).where.not(after_shipped_state: :delivered).each do |shipment|
+      Spree::Shipment.where.not(tracking_id: nil).where.not(after_shipped_state: [:delivered, :canceled]).each do |shipment|
         Rails.logger.info "shipment #{shipment.id}"
         next if shipment.state == 'canceled'
         tracking_page = scraper.addresses['tracking_page'] + shipment.tracking_id
@@ -162,7 +162,7 @@ namespace :shipping_update do
         when scraper.status['step5']
           shipment.complete_domestic_delivery
         else
-          if img['src'] != scraper.status['step1']  and img['src'] != scraper.status['step2']
+          if img['src'] != scraper.status['step1']  and img['src'] != scraper.status['step2'] and img['src'] != "/images/tracking/track_step.gif"
             raise "scraping error:image source#{img['src']}"
           end
         end

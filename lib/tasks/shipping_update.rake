@@ -9,23 +9,16 @@ namespace :shipping_update do
       Rails.logger.info "start amz_shipping_scraping"
       scraper = Spree::AmazonScraper.new
       raise "Login failed!" unless scraper.login(scraper.login_info['userid'], scraper.login_info['password'])
-      Spree::Shipment.where(state: 'pending').where(store: 'amazon').where.not(store_order_id: nil).pluck(:store_order_id).each do |ids|
+      Spree::Shipment.where(state: 'pending').where(store: 'amazon').where.not(store_order_id: nil).pluck(:store_order_id).each do |id|
         Rails.logger.info "store_order_id:#{id}"
-        @id_count = ids.split(',').count
-        @shipped_count = 0
-        ids.split(',').each do |id|
-          order_status_page = scraper.get_html_doc "#{scraper.addresses['order_status']}#{id}"
-          raise "order status page not found" if order_status_page == nil
-          order_status = scraper.get_single_text(order_status_page, scraper.selectors['order_status']).text.strip
-          raise "couldn't get order status in amazon" if order_status.nil?
-          Rails.logger.info order_status
-          next unless order_status == 'Shipped'
-          @shipped_count += 1
-        end
-        if @shipped_count == @id_count
-          shipment.complete_ship
-          shipment.save
-        end
+        order_status_page = scraper.get_html_doc "#{scraper.addresses['order_status']}#{id}"
+        raise "order status page not found" if order_status_page == nil
+        order_status = scraper.get_single_text(order_status_page, scraper.selectors['order_status']).text.strip
+        raise "couldn't get order status in amazon" if order_status.nil?
+        Rails.logger.info order_status
+        next unless order_status == 'Shipped'
+        shipment.complete_ship
+        shipment.save
       end
     rescue Exception => e
       Rails.logger.error "error occured: #{$!}"

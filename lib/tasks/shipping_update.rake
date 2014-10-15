@@ -3,6 +3,21 @@ namespace :shipping_update do
   def send_notify_email exception
     Spree::NotifyMailer.notify_email("failed to update shipping status:[#{exception.message}]", exception.backtrace).deliver
   end
+  desc "shipping status update from amazon web-page"
+  task amazon_scraping: :environment do
+    begin
+      Rails.logger.info "start amz_shipping_scraping"
+      scraper = Spree::AmazonScraper.new
+      raise "Login failed!" unless scraper.login(scraper.login_info['userid'], scraper.login_info['password'])
+      order_list_page = scraper.get_html_doc scraper.addresses['order_status'] + '110-7762252-0649008'
+      raise "order list page not found" if order_list_page == nil
+      Rails.logger.info "#{order_list_page}"
+    rescue Exception => e
+      Rails.logger.error "error occured: #{$!}"
+      Rails.logger.error e.backtrace
+      send_notify_email e
+    end
+  end
 
   desc "shipping status update from amazon shipping confirm email"
   task amz_shipping_scraping: :environment do

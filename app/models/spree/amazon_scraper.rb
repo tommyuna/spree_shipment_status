@@ -16,12 +16,17 @@ module Spree
     def login id, password
       @retry_cnt = 0
       begin
-      page = @agent.post('http://www.ohmyzip.com/account/mem_process.php',
-                         { "shop_action" => "member_login",
-                           "ajax_login"  => "on",
-                           "member_id"   => id,
-                           "member_pw"   => password,
-                           "login_url"   => "../account/"})
+        #cookie = Mechanize::Cookie.new :domain => '.amazon.com', :name => name, :value => value, :path => '/', :expires => (Date.today + 1).to_s
+        #@agent.cookie_jar << cookie
+        @agent.get 'https://www.amazon.com'
+        puts @agent.cookie_jar.to_a
+        page = @agent.post( 'https://www.amazon.com/ap/signin?_encoding=UTF8&openid.assoc_handle=usflex&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.mode=checkid_setup&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&openid.ns.pape=http%3A%2F%2Fspecs.openid.net%2Fextensions%2Fpape%2F1.0&openid.pape.max_auth_age=0&openid.return_to=https%3A%2F%2Fwww.amazon.com%2Fgp%2Fyourstore%2Fhome%3Fie%3DUTF8%26ref_%3Dnav_custrec_signin',
+                            { "email"       => id,
+                              "create"      => 0,
+                              "password"    => password,
+                              "login_url"   => "../account/"
+                            }
+                          )
       rescue Net::ReadTimeout
         if @retry_cnt < 5 then
           @retry_cnt += 1
@@ -30,7 +35,7 @@ module Spree
           retry
         end
       end
-      Rails.logger.info "#{page.body}"
+      #puts "#{page.body}"
       if page.body == 'idpwErr' or page.body == 'idErr'
         return false
       end

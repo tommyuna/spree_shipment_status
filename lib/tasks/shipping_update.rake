@@ -9,9 +9,24 @@ namespace :shipping_update do
       Rails.logger.info "start amz_shipping_scraping"
       scraper = Spree::AmazonScraper.new
       raise "Login failed!" unless scraper.login(scraper.login_info['userid'], scraper.login_info['password'])
-      order_list_page = scraper.get_html_doc scraper.addresses['order_status'] + '110-7762252-0649008'
-      raise "order list page not found" if order_list_page == nil
-      Rails.logger.info "#{order_list_page}"
+      Spree::Shipment.where(state: 'pending').where(store: 'amazon').where.not(store_order_id: nil).pluck(:store_order_id).each do |ids|
+        Rails.logger.info "store_order_id:#{id}"
+        @id_count = ids.split(',').count
+        @shipped_count = 0
+        ids.split(',').each do |id|
+          order_status_page = scraper.get_html_doc "#{scraper.addresses['order_status']}#{id}"
+          raise "order status page not found" if order_status_page == nil
+          order_status = scraper.get_single_text(order_status_page, scraper.selectors['order_status']).text.strip
+          raise "couldn't get order status in amazon" if order_status.nil?
+          Rails.logger.info order_status
+          next unless order_status == 'Shipped'
+          @shipped_count += 1
+        end
+        if @shipped_count == @id_count
+          shipment.complete_ship
+          shipment.save
+        end
+      end
     rescue Exception => e
       Rails.logger.error "error occured: #{$!}"
       Rails.logger.error e.backtrace

@@ -15,7 +15,7 @@ namespace :shipping_update do
         raise "order status page not found" if order_status_page == nil
         order_status = scraper.get_single_text(order_status_page, scraper.selectors['order_status']).text.strip
         raise "couldn't get order status in amazon" if order_status.nil?
-        Rails.logger.info order_status
+        Rails.logger.info "#{order_status}"
         next unless order_status == 'Shipped'
         shipment.complete_ship
         shipment.save

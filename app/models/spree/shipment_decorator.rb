@@ -41,9 +41,11 @@ Spree::Shipment.class_eval do
   end   #state_machine
 
   def check_ship
+    Rails.logger.info "shipment[#{self.id}] state[#{shipment.state}]"
     if self.state != 'shipped'
       if self.state == 'pending'
         self.order.payments.each do |p|
+          Rails.logger.info "payment[#{p.id}] state[#{p.state}]"
           p.capture! if p.state == 'pending'
         end
       end

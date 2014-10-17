@@ -69,11 +69,37 @@ Spree::Shipment.class_eval do
     update_order_shipment_state
     self.complete_ship!
   end
+
   def all_shipped?
     tracking_id_count = self.tracking_id.split(",").count
     store_order_id_count = self.tracking_id.split(",").count
     return true if tracking_id_count == store_order_id_count
     false
+  end
+
+  def get_store_urls
+    urls = []
+    self.store.split(",").each do |store|
+      case store
+      when 'amazon'
+        urls.push 'www.amazon.com'
+      when 'ssense'
+        urls.push 'www.ssense.com'
+      when 'gap'
+        urls.push 'www.gap.com'
+      when 'bananarepublic'
+        urls.push 'www.bananarepublic.com'
+      else
+        urls.push store
+      end
+    end
+    urls
+  end
+  def get_order_ids
+    self.store_order_id.split(",")
+  end
+  def get_tracking_ids
+    self.tracking_id.split(",")
   end
 
   def get_shipment_status

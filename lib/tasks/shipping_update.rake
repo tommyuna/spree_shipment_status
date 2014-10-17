@@ -133,7 +133,7 @@ namespace :shipping_update do
             Rails.logger.info "shipment id: #{shipment.id}"
             Rails.logger.info "ohmyzip id: #{@shipment_id}"
             Rails.logger.info "tracking id: #{@tracking_id}"
-            unless shipment.after_shipped_state == 'overseas_delivery'
+            unless shipment.after_shipped_state == 'overseas_delivery' or shipment.state == 'canceled'
               shipment.start_oversea_delivery
               shipment.ohmyzip_id = @shipment_id
               shipment.tracking_id = @tracking_id

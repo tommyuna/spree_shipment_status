@@ -115,7 +115,16 @@ namespace :shipping_update do
             store_order_id = store_order_id_doc.text.split(',')
             Rails.logger.info "#{store}/#{store_order_id}"
           end
-          store = 'amazon' if store == 'www.amazon.com'
+          case store
+          when 'www.amazon.com'
+            store = 'amazon'
+          when 'www.ssense.com'
+            store = 'ssense'
+          when 'www.gap.com'
+            store = 'gap'
+          when 'www.bananarepublic.gap.com'
+            store = 'bananarepublic'
+          end
           Rails.logger.info "store: #{store}"
           shipments = Spree::Shipment.where(store: store).where('store_order_id in (?)', store_order_id)
 

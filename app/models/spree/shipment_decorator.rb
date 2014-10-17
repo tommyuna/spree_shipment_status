@@ -69,6 +69,12 @@ Spree::Shipment.class_eval do
     update_order_shipment_state
     self.complete_ship!
   end
+  def all_shipped?
+    tracking_id_count = self.tracking_id.split(",").count
+    store_order_id_count = self.tracking_id.split(",").count
+    return true if tracking_id_count == store_order_id_count
+    false
+  end
 
   def get_shipment_status
     if self.canceled?

@@ -78,6 +78,7 @@ Spree::Shipment.class_eval do
   end
 
   def get_store_urls
+    return [] if self.store.nil?
     urls = []
     self.store.split(",").each do |store|
       case store
@@ -96,9 +97,11 @@ Spree::Shipment.class_eval do
     urls
   end
   def get_order_ids
+    return [] if self.store_order_id.nil?
     self.store_order_id.split(",")
   end
   def get_tracking_ids
+    return [] if self.tracking_id.nil?
     self.tracking_id.split(",")
   end
 

@@ -56,6 +56,7 @@ Spree::Shipment.class_eval do
     true
   end
   def publish?
+    Rails.logger.info "publish?#{self}"
     return if self.order.shipments.any? {|sh| not sh.shipped? }
     Message::Shipment::ShipmentShipped.new(self.order.shipments)
     Amqp::produce(msg,'shipping_automator')
@@ -71,10 +72,23 @@ Spree::Shipment.class_eval do
   end
 
   def all_shipped?
-    tracking_id_count = self.tracking_id.split(",").count
-    store_order_id_count = self.tracking_id.split(",").count
-    return true if tracking_id_count == store_order_id_count
-    false
+    self.json_store_order_id.each do |store, order_ids|
+      return false unless self.json_us_tracking_id.nil? or self.json_us_tracking_id[store]
+      return false if self.json_us_tracking_id[store].count != order_ids.count
+    end
+  end
+
+  def push_store_order_id store, order_id
+    json_store_order_id = self.json_store_order_id
+    json_store_order_id[store] = [] if json_store_order_id[store].empty?
+    json_store_order_id[store].push order_id
+    self.update_columns(json_store_order_id: json_store_order_id)
+  end
+  def push_us_tracking_id store, us_tracking_id
+    json_us_tracking_id = self.json_us_tracking_id
+    json_us_tracking_id[store] = [] if json_us_tracking_id[store].empty?
+    json_us_tracking_id[store].push us_tracking_id
+    self.update_columns(json_us_tracking_id: json_us_tracking_id)
   end
 
   def get_store_urls
@@ -95,14 +109,6 @@ Spree::Shipment.class_eval do
       end
     end
     urls
-  end
-  def get_order_ids
-    return [] if self.store_order_id.nil?
-    self.store_order_id.split(",")
-  end
-  def get_tracking_ids
-    return [] if self.tracking_id.nil?
-    self.tracking_id.split(",")
   end
 
   def get_shipment_status

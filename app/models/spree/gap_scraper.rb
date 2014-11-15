@@ -12,12 +12,20 @@ module Spree
     end
 
     def get_order_page order_id
-      page = @agent.get self.addresses['order_status']
-      page = page.form_with(:name => 'OrderLookupForm') do |form|
+      @page = @agent.get self.addresses['order_status']
+      @page = @page.form_with(:name => 'OrderLookupForm') do |form|
         form.orderNumber = order_id
         form.newEmailAddress = "hello@luuv.it"
       end.submit
-      Nokogiri::HTML(page.body)
+      Nokogiri::HTML(@page.body)
+    end
+
+    def get_shipment_page order_id
+      unless Nokogiri::HTML(@page.body).at_css(self.selectors['order_no']).text.include? order_id
+        get_order_page order_id
+      end
+      @page = @agent.click @page.link_with(:text => 'Shipment summary')
+      Nokogiri::HTML(@page.body)
     end
 
     def get_html_doc address
@@ -39,7 +47,6 @@ module Spree
       end
     end
     def get_tracking_id page
-      binding.pry
       addr = (page.at_css(self.selectors['tracking_link']).attribute 'href').value
       page = @agent.get addr
       (Nokogiri::HTML(page.body).at_css scraper.selectors['us_tracking_id']).text

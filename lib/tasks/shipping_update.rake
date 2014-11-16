@@ -62,8 +62,7 @@ namespace :shipping_update do
     begin
       ship_log "start gap_shipping_scraping"
       scraper = Spree::GapScraper.new
-      #Spree::Shipment.where(state: ['pending', 'ready']).where.not(:state => 'canceled').where.not(json_store_order_id: nil).find_each do |shipment|
-        shipment = Spree::Shipment.find(1311)
+      Spree::Shipment.where(state: ['pending', 'ready']).where.not(:state => 'canceled').where.not(json_store_order_id: nil).find_each do |shipment|
         ship_log "shipment.id:#{shipment.id}"
         ship_log "shipment store_order_id#{shipment.json_store_order_id}"
         if (1.second.ago - shipment.created_at) > 5.days
@@ -95,26 +94,68 @@ namespace :shipping_update do
           shipment.complete_ship
           shipment.save
         end
-      #end
+      end
     rescue Exception => e
       ship_log "error occured: #{$!}"
       ship_log e.backtrace
       send_error_email e
     end
   end
+
   desc "getting information from the82"
   task the82_api_update: :environment do
     begin
-      
+      api = Spree::The82Api.new
+      Spree::Shipment.where(after_shipped_state: ['local_delivery', 'local_delivery_complete']).where.not(:state => 'canceled').find_each do |shipment|
+        if shipment.forwarding_id.nil?
+          send_notify_email "forwarding_id is nil" "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
+          next
+        end
+        if (1.second.ago - shipment.created_at) > 10.days
+          send_notify_email "check shipment status" "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
+          next
+        end
+        page = api.post_shipment_status shipment
+
+        if status == "IC" #입고완료
+          shipment.complete_local_delivery
+        elsif status == "EI"  #오류입고
+          send_notify_email "check shipment status:오류입고" "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
+        elsif status == "OC"  #출고완료
+          shipment.start_oversea_delivery
+        elsif status == "RC"  #수취완료
+          shipment.complete_domestic_delivery
+        end
+      end
     rescue Exception => e
       ship_log "error occured: #{$!}"
       ship_log e.backtrace
       send_error_email e
     end
   end
-  desc "getting information from the82"
+  desc "tracking shipping inside of korea"
   task tracking_korean_shipping: :environment do
     begin
+      scraper = Spree::The82Scraper.new
+      Spree::Shipment.where(after_shipped_state: ['overseas_delivery', 'customs', 'domestic_delivery']).where.not(:state => 'canceled').find_each do |shipment|
+        if shipment.json_kr_tracking_id.nil?
+          send_notify_email "json_kr_tracking_id is nil" "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
+          next
+        end
+        if (1.second.ago - shipment.created_at) > 15.days
+          send_notify_email "check shipment status" "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
+          next
+        end
+        page = scraper.get_shipment_status shipment.json_kr_tracking_id
+        puts page.to_html
+        unless scraper.get_single_text(page, scraper.selectors['custom_info']).text.include? "등록된 자료가 없습니다"
+          if scraper.get_single_text(page, scraper.selectors['postoffice_info']).text.include? "배달완료"
+            shipment.complete_domestic_delivery
+          else
+            shipment.start_domestic_delivery
+          end
+        end
+      end
     rescue Exception => e
       ship_log "error occured: #{$!}"
       ship_log e.backtrace

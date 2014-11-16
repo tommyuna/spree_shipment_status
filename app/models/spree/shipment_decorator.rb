@@ -11,7 +11,7 @@ Spree::Shipment.class_eval do
   state_machine   :after_shipped_state,   :initial  => :before_ship do
 
     before_transition :from => :before_ship, :do => :check_ship
-    after_transition :from => :before_ship, :do => :publish?
+    after_transition :from => :before_ship, :do => :shipment_registration
 
     event :complete_ship do
       transition from: :before_ship, to: :local_delivery
@@ -56,13 +56,10 @@ Spree::Shipment.class_eval do
     true
   end
 
-  #deploy it next time
-  def publish?
-    #Rails.logger.info "publish?#{self}"
-    #return if self.order.shipments.any? {|sh| not sh.shipped? }
-    #Message::Shipment::ShipmentShipped.new(self.order.shipments)
-    #Amqp::produce(msg,'shipping_automator')
-    #true
+  def shipment_registration
+    api = Spree::The82Api.new
+    rtn = api.post_shipment_registration self
+    #update shipment with rtn
   end
 
   def after_ship

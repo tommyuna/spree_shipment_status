@@ -2,10 +2,12 @@ Spree::Api::OrdersController.class_eval do
   def update_store_order_id
     find_order(true)
     authorize! :update, @order, order_token
-    unless params[:store] == nil and params[:store_order_id] == nil
+    unless params[:json_store_order_id] == nil
       unless @order.shipments == nil
         @order.shipments.each do |shipment|
-          shipment.push_store_order_id params[:store], params[:store_order_id]
+          params[:json_store_order_id].each do |key, value|
+            shipment.push_store_order_id key, value
+          end
         end
       end
     end

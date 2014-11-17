@@ -11,7 +11,7 @@ Spree::Shipment.class_eval do
   state_machine   :after_shipped_state,   :initial  => :before_ship do
 
     before_transition :from => :before_ship, :do => :check_ship
-    after_transition :from => :before_ship, :do => :shipment_registration
+#    after_transition :from => :before_ship, :do => :shipment_registration
 
     event :complete_ship do
       transition from: :before_ship, to: :local_delivery

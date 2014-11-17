@@ -43,7 +43,7 @@ Spree::Shipment.class_eval do
 
   def check_ship
     Rails.logger.info "shipment[#{self.id}] state[#{self.state}]"
-    if self.state != 'shipped'
+    if self.state != 'shipped' and self.state != 'canceled'
       if self.state == 'pending'
         self.order.payments.each do |p|
           Rails.logger.info "payment[#{p.id}] state[#{p.state}]"

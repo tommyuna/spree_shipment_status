@@ -91,8 +91,13 @@ Spree::Shipment.class_eval do
       us_tracking_id[store] = {}
     end
     store_order_id[store].push order_id
-    us_tracking_id[store][order_id] = [] if us_tracking_id[store][order_id].nil?
-    self.update_attributes({:json_store_order_id => store_order_id, :json_us_tracking_id => us_tracking_id})
+    store_order_id[store].flatten!
+    store_order_id[store].uniq!
+    store_order_id[store].each do |id|
+      us_tracking_id[store][id] = [] if us_tracking_id[store][id].nil?
+    end
+    self.update_columns(:json_store_order_id => store_order_id)
+    self.update_columns(:json_us_tracking_id => us_tracking_id)
   end
   def push_us_tracking_id store, order_id, us_tracking_ids
     return if store.nil? or order_id.nil? or us_tracking_ids.nil?

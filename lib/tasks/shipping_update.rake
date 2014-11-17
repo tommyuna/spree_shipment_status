@@ -9,9 +9,9 @@ namespace :shipping_update do
      Rails.logger.info "shipping-update:#{str}"
   end
   desc "shipping status update from amazon web-page"
-  task amazon_scraping: :environment do
+  task amazon_web_scraping: :environment do
     begin
-      ship_log "start amazon_shipping_scraping"
+      ship_log "start amazon_web_scraping"
       scraper = Spree::AmazonScraper.new
       raise "Login failed!" unless scraper.login(scraper.login_info['userid'], scraper.login_info['password'])
       Spree::Shipment.where(state: ['pending', 'ready']).where.not(:state => 'canceled').where.not(json_store_order_id: nil).find_each do |shipment|

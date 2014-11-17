@@ -162,7 +162,7 @@ namespace :shipping_update do
       send_error_email e
     end
   end
- desc "shipping status update from amazon shipping confirm email"
+  desc "shipping status update from amazon shipping confirm email"
   task amz_shipping_scraping: :environment do
     begin
     Rails.logger.info "start amz_shipping_scraping"
@@ -273,7 +273,16 @@ namespace :shipping_update do
             store_order_id = store_order_id_doc.text.split(',')
             Rails.logger.info "#{store}/#{store_order_id}"
           end
-          store = 'amazon' if store == 'www.amazon.com'
+          case store
+          when 'www.amazon.com'
+            store = 'amazon'
+          when 'www.ssense.com'
+            store = 'ssense'
+          when 'www.gap.com'
+            store = 'gap'
+          when 'www.bananarepublic.gap.com'
+            store = 'bananarepublic'
+          end
           Rails.logger.info "store: #{store}"
           shipments = Spree::Shipment.where(store: store).where('store_order_id in (?)', store_order_id)
 
@@ -282,7 +291,7 @@ namespace :shipping_update do
             Rails.logger.info "shipment id: #{shipment.id}"
             Rails.logger.info "ohmyzip id: #{@shipment_id}"
             Rails.logger.info "tracking id: #{@tracking_id}"
-            unless shipment.after_shipped_state == 'overseas_delivery'
+            unless shipment.after_shipped_state == 'overseas_delivery' or shipment.state == 'canceled'
               shipment.start_oversea_delivery
               shipment.ohmyzip_id = @shipment_id
               shipment.tracking_id = @tracking_id

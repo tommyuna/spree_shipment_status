@@ -27,12 +27,13 @@ module Spree
       parameters = arguments.dup
       parameters.delete :products
       arguments[:products].each do |prod|
-        parameters.merge prod
+        Rails.logger.debug prod
+        parameters.merge! prod
         Rails.logger.debug parameters
         page = @agent.post self.addresses['shipment_registration'], parameters
-        Nokogiri::XML(page.body)
+        rtn = Nokogiri::XML(page.body)
+        binding.pry
       end
-      Nokogiri::XML(page.body)
     end
     def assign_data_for_registration shipment
       address = shipment.address
@@ -50,6 +51,11 @@ module Spree
       rtn[:address1] = replace_comma(address.address1)
       rtn[:address2] = replace_comma(address.address2)
       rtn[:listpass] = "1"
+      rtn[:detailtype] = "1"
+      rtn[:package] = "1"
+      rtn[:package2] = "1"
+      rtn[:isinvoice] = "1"
+      rtn[:protectpackage] = "0"
       products = []
       order.line_items.each do |li|
         item = {}
@@ -67,7 +73,7 @@ module Spree
         item[:qty] = li.quantity
         item[:cost] = li.price.to_f
         item[:orderno] = shipment.json_store_order_id[prod.merchant].first unless shipment.json_store_order_id[prod.merchant].nil? or shipment.json_store_order_id[prod.merchant].empty?
-        item[:spnm] = prod.merchant
+        item[:spnm] = "SNAPSHOP"
         item[:deliveryType] = "3"
         item[:custordno] = order.number
         item[:category] = prod.get_taxon_name

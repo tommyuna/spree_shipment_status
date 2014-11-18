@@ -204,7 +204,7 @@ namespace :shipping_update do
     rescue Exception => e
       Rails.logger.error "error occured: #{$!}"
       Rails.logger.error e.backtrace
-      send_notify_email e
+      send_error_email e
     end
   end
 
@@ -241,7 +241,7 @@ namespace :shipping_update do
     rescue Exception => e
       Rails.logger.error "error occured: #{$!}"
       Rails.logger.error e.backtrace
-      send_notify_email e
+      send_error_email e
     end
   end
 
@@ -303,7 +303,7 @@ namespace :shipping_update do
     rescue Exception => e
       Rails.logger.error "error occured: #{$!}"
       Rails.logger.error e.backtrace
-      send_notify_email e
+      send_error_email e
     end
   end
 
@@ -339,7 +339,19 @@ namespace :shipping_update do
     rescue Exception => e
       Rails.logger.error "error occured: #{$!}"
       Rails.logger.error e.backtrace
-      send_notify_email e
+      send_error_email e
+    end
+  end
+  desc "tmp_test"
+  task tmp_test: :environment do
+    begin
+      api = Spree::The82Api.new
+      shipment = Spree::Shipment.find(3585)
+      api.post_shipment_registration shipment
+    rescue Exception => e
+      Rails.logger.error "error occured: #{$!}"
+      Rails.logger.error e.backtrace
+      send_error_email e
     end
   end
 end

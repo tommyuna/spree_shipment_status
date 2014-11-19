@@ -58,8 +58,11 @@ Spree::Shipment.class_eval do
 
   def shipment_registration
     api = Spree::The82Api.new
-    rtn = api.post_shipment_registration self
-    #update shipment with rtn
+    page = api.post_shipment_registration self
+    forwarding_id = page.xpath(api.xpath['forwarding_id']).text
+    kr_tracking_id = page.xpath(api.xpath['kr_tracking_id']).text
+    self.update_columns(forwarding_id: forwarding_id)
+    self.update_columns(kr_tracking_id: kr_tracking_id)
   end
 
   def after_ship

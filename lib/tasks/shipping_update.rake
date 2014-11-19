@@ -6,7 +6,7 @@ namespace :shipping_update do
     Spree::NotifyMailer.notify_email(subject, body).deliver
   end
   def ship_log str
-     Rails.logger.info "shipping-update:#{str}"
+    Rails.logger.info "shipping-update:#{str}"
   end
   desc "shipping status update from amazon web-page"
   task amazon_web_scraping: :environment do
@@ -46,6 +46,7 @@ namespace :shipping_update do
           end
         end
         if shipment.all_shipped?
+          ship_log "shipped[#{shipment.id}]"
           shipment.complete_ship
           shipment.save
         end
@@ -91,6 +92,7 @@ namespace :shipping_update do
           end
         end
         if shipment.all_shipped?
+          ship_log "shipped[#{shipment.id}]"
           shipment.complete_ship
           shipment.save
         end
@@ -116,7 +118,8 @@ namespace :shipping_update do
           next
         end
         page = api.post_shipment_status shipment
-
+        raise "no return from the 82 for status check" if page.nil?
+        status = page.xpath(scraper.xpaths['status']).text
         if status == "IC" #입고완료
           shipment.complete_local_delivery
         elsif status == "EI"  #오류입고
@@ -165,7 +168,7 @@ namespace :shipping_update do
   desc "shipping status update from amazon shipping confirm email"
   task amz_shipping_scraping: :environment do
     begin
-    Rails.logger.info "start amz_shipping_scraping"
+    ship_log "start amz_shipping_scraping"
     scraper = Spree::GmailScraper.new
     raise "amz_shipping_scraping: Login failed! #{scraper.login_info['userid']}/#{scraper.login_info['password']}" unless scraper.login(scraper.login_info['userid'], scraper.login_info['password'])
 
@@ -175,9 +178,9 @@ namespace :shipping_update do
     last_processed_shipment_email = Spree::Shipment.where.not(shipment_confirm_email_uid: nil).order('shipment_confirm_email_uid DESC').first.shipment_confirm_email_uid
     last_processed_shipment_email = 0 if last_processed_shipment_email == nil
     uids = scraper.get_uid_list(query).find_all { |uid| uid > last_processed_shipment_email - 30 }
-    Rails.logger.info "last_processed_shipment_email[#{last_processed_shipment_email}]"
+    ship_log "last_processed_shipment_email[#{last_processed_shipment_email}]"
     uids.each do |uid|
-      Rails.logger.info "#{uid}:-------------------------------------------------"
+      ship_log "#{uid}:-------------------------------------------------"
       doc = scraper.get_html_doc uid
       next if doc == nil
       store_order_id = scraper.get_multiple_text(doc, scraper.selectors['amz_shipping_confirm'])
@@ -189,11 +192,11 @@ namespace :shipping_update do
         else
           next
         end
-        Rails.logger.info "amazon order id[#{@amazon_id}]"
+        ship_log "amazon order id[#{@amazon_id}]"
         shipments = Spree::Shipment.where(store: 'amazon').where(store_order_id: @amazon_id)
         shipments.each { |shipment|
           unless shipment.state == 'shipped' or shipment.state == 'canceled'
-            Rails.logger.info "shipment:[#{shipment.id}] is updated"
+            ship_log "shipment:[#{shipment.id}] is updated"
             shipment.shipment_confirm_email_uid = uid
             shipment.complete_ship
             shipment.save
@@ -211,7 +214,7 @@ namespace :shipping_update do
   desc "shipping status update from package tracker email"
   task package_tracker_scraping: :environment do
     begin
-    Rails.logger.info "start package_tracker_scraping"
+    ship_log "start package_tracker_scraping"
     scraper = Spree::GmailScraper.new
     raise "Login failed!" unless scraper.login(scraper.login_info['userid'], scraper.login_info['password'])
 
@@ -250,9 +253,9 @@ namespace :shipping_update do
     begin
       #scraping from ohmyzip
       scraper = Spree::OhmyzipScraper.new
-      Rails.logger.info "start ohmyzip_scraping #{scraper.login_info['userid']}/#{scraper.login_info['password']}"
+      ship_log "start ohmyzip_scraping #{scraper.login_info['userid']}/#{scraper.login_info['password']}"
       raise "Login failed!" unless scraper.login(scraper.login_info['userid'], scraper.login_info['password'])
-      Rails.logger.info "ohmyzip login!"
+      ship_log "ohmyzip login!"
       order_list_page = scraper.get_html_doc scraper.addresses['order_list']
       raise "order list page not found" if order_list_page == nil
       scraper.get_multiple_text(order_list_page, scraper.selectors['order_list_row']).each do |row|
@@ -261,7 +264,7 @@ namespace :shipping_update do
         unless shipment_id_doc == nil
           @shipment_id = shipment_id_doc.text
           @tracking_id = tracking_id_doc.text unless tracking_id_doc == nil
-          Rails.logger.info "shipment id:#{@shipment_id}/ tracking id:#{@tracking_id}"
+          ship_log "shipment id:#{@shipment_id}/ tracking id:#{@tracking_id}"
           order_detail_doc = scraper.get_html_doc(scraper.addresses['order_detail'] + @shipment_id)
           raise "order detail page not found" if order_detail_doc == nil
           store_doc = scraper.get_single_text(order_detail_doc, scraper.selectors['order_detail_store'])
@@ -271,7 +274,7 @@ namespace :shipping_update do
           else
             store = store_doc.text
             store_order_id = store_order_id_doc.text.split(',')
-            Rails.logger.info "#{store}/#{store_order_id}"
+            ship_log "#{store}/#{store_order_id}"
           end
           case store
           when 'www.amazon.com'
@@ -283,14 +286,14 @@ namespace :shipping_update do
           when 'www.bananarepublic.gap.com'
             store = 'bananarepublic'
           end
-          Rails.logger.info "store: #{store}"
+          ship_log "store: #{store}"
           shipments = Spree::Shipment.where(store: store).where('store_order_id in (?)', store_order_id)
 
           #raise "shipments not found" if shipments == nil
           shipments.each do |shipment|
-            Rails.logger.info "shipment id: #{shipment.id}"
-            Rails.logger.info "ohmyzip id: #{@shipment_id}"
-            Rails.logger.info "tracking id: #{@tracking_id}"
+            ship_log "shipment id: #{shipment.id}"
+            ship_log "ohmyzip id: #{@shipment_id}"
+            ship_log "tracking id: #{@tracking_id}"
             unless shipment.after_shipped_state == 'overseas_delivery' or shipment.state == 'canceled'
               shipment.start_oversea_delivery
               shipment.ohmyzip_id = @shipment_id
@@ -310,17 +313,17 @@ namespace :shipping_update do
   desc "shipping status update from warpex tracker page"
   task warpex_scraping: :environment do
     begin
-      Rails.logger.info "start warpex_scraping"
+      ship_log "start warpex_scraping"
       scraper = Spree::WarpexScraper.new
       Spree::Shipment.where.not(tracking_id: nil).where.not(after_shipped_state: [:delivered, :canceled]).each do |shipment|
-        Rails.logger.info "shipment #{shipment.id}"
+        ship_log "shipment #{shipment.id}"
         next if shipment.state == 'canceled'
         tracking_page = scraper.addresses['tracking_page'] + shipment.tracking_id
-        Rails.logger.info "tracking_page #{tracking_page}"
+        ship_log "tracking_page #{tracking_page}"
         doc = scraper.get_html_doc tracking_page
         raise "tracking_page not found" if doc == nil
         img = scraper.get_single_text doc, scraper.selectors['status']
-        Rails.logger.info "img:#{img['src']}"
+        ship_log "img:#{img['src']}"
         case img['src']
         when scraper.status['step3']
           shipment.complete_oversea_delivery
@@ -334,7 +337,7 @@ namespace :shipping_update do
           end
         end
         shipment.save
-        Rails.logger.info "shipment:#{shipment.after_shipped_state}"
+        ship_log "shipment:#{shipment.after_shipped_state}"
       end
     rescue Exception => e
       Rails.logger.error "error occured: #{$!}"
@@ -342,16 +345,11 @@ namespace :shipping_update do
       send_error_email e
     end
   end
-  desc "tmp_test"
-  task tmp_test: :environment do
-    begin
-      api = Spree::The82Api.new
-      shipment = Spree::Shipment.find(3585)
-      api.post_shipment_registration shipment
-    rescue Exception => e
-      Rails.logger.error "error occured: #{$!}"
-      Rails.logger.error e.backtrace
-      send_error_email e
-    end
-  end
+  #desc "test"
+  #task tmp_test: :environment do
+  #  shipment = Spree::Shipment.find(3693)
+  #  api = Spree::The82Api.new
+  #  page = api.post_shipment_status shipment
+  #  binding.pry
+  #end
 end

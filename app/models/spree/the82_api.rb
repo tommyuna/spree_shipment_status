@@ -2,11 +2,14 @@ require 'open-uri'
 require 'mechanize'
 module Spree
   class The82Api < Spree::ScraperBase
+    attr_reader :xpaths
+
     def initialize
       super
       @agent = Mechanize.new
       @addresses = get_config 'api.the82.address'
       @selectors = get_config 'api.the82.selector'
+      @xpaths = get_config 'api.the82.xpath'
     end
 
     def post_shipment_status shipment
@@ -23,69 +26,126 @@ module Spree
     end
 
     def post_shipment_registration shipment
-      arguments = self.assign_data_for_registration shipment
-      parameters = arguments.dup
-      parameters.delete :products
-      arguments[:products].each do |prod|
-        Rails.logger.debug prod
-        parameters.merge! prod
-        Rails.logger.debug parameters
-        page = @agent.post self.addresses['shipment_registration'], parameters
-        rtn = Nokogiri::XML(page.body)
-        binding.pry
-      end
+      parameters = self.assign_data_for_registration shipment
+      page = @agent.post self.addresses['shipment_registration'], parameters
+      Nokogiri::XML(page.body)
     end
     def assign_data_for_registration shipment
       address = shipment.address
       order = shipment.order
       rtn = {}
-      rtn[:gubun] = 'D'
-      rtn[:jisa] = 'IL'
-      rtn[:custid] = ENV['OHMYZIP_USERID']
-      rtn[:authkey] = ENV['OHMYZIP_PASSWORD']
-      rtn[:receiverkrnm] = replace_comma(address.firstname)
-      rtn[:receiverennm] = " "
-      rtn[:mobile] = replace_comma(address.phone)
-      rtn[:tax] = replace_comma(address.phone)
-      rtn[:zipcode] = replace_comma(address.zipcode)
-      rtn[:address1] = replace_comma(address.address1)
-      rtn[:address2] = replace_comma(address.address2)
-      rtn[:listpass] = "1"
-      rtn[:detailtype] = "1"
-      rtn[:package] = "1"
-      rtn[:package2] = "1"
-      rtn[:isinvoice] = "1"
-      rtn[:protectpackage] = "0"
-      products = []
+      rtn.compare_by_identity
+      rtn["gubun"] = 'D'
+      rtn["jisa"] = 'IL'
+      rtn["custid"] = ENV['OHMYZIP_USERID']
+      rtn["authkey"] = ENV['OHMYZIP_PASSWORD']
+      rtn["receiverkrnm"] = replace_comma(address.firstname)
+      rtn["receiverennm"] = " "
+      rtn["mobile"] = replace_comma(address.phone)
+      rtn["tax"] = "com"
+      rtn["zipcode"] = replace_comma(address.zipcode)
+      rtn["address1"] = replace_comma(address.address1)
+      rtn["address2"] = replace_comma(address.address2)
+      rtn["listpass"] = "1"
+      rtn["detailtype"] = "1"
+      rtn["package"] = "1"
+      rtn["package2"] = "1"
+      rtn["isinvoice"] = "1"
+      rtn["protectpackage"] = "0"
       order.line_items.each do |li|
-        item = {}
         var = li.variant
         prod = li.product
-        item[:brand] = replace_comma(prod.brand)
-        item[:prodnm] = replace_comma(prod.name)
-        item[:produrl] = "https://gosnapshop.com/products/#{prod.slug}"
-        item[:prodimage] = "https://gosnapshop.com#{prod.images.first.attachment.url("large")}"
+        rtn["ominc"] = order.number
+        rtn["brand"] = replace_comma(prod.brand)
+        rtn["prodnm"] = replace_comma(prod.name)
+        #rtn["produrl"] = "https://gosnapshop.com/products/#{prod.slug}"
+        rtn["produrl"] = "https://gosnapshop.com/products/abercrombie-fitch-men-fashion-flap-pockets-plaid-logo-shirt"
+        #rtn["prodimage"] = "https://gosnapshop.com#{prod.images.first.attachment.url("large")}"
+        rtn["prodimage"] = "https://gosnapshop.com/spree/products/146107/large/51JtUYfwUUL.jpg?1411022625"
         properties = prod.product_properties.select {|pp| pp.property.name == 'Color'}
         unless properties.empty?
-          item[:prodcolor] = replace_comma(properties.first.value)
+          rtn["prodcolor"] = replace_comma(properties.first.value)
+        else
+          rtn["prodcolor"] = "N/A"
         end
-        item[:prodsize] = replace_comma(var.size) unless var.size.nil?
-        item[:qty] = li.quantity
-        item[:cost] = li.price.to_f
-        item[:orderno] = shipment.json_store_order_id[prod.merchant].first unless shipment.json_store_order_id[prod.merchant].nil? or shipment.json_store_order_id[prod.merchant].empty?
-        item[:spnm] = "SNAPSHOP"
-        item[:deliveryType] = "3"
-        item[:custordno] = order.number
-        item[:category] = prod.get_taxon_name
-        products.push item
+        unless var.size.nil?
+          rtn["prodsize"] = replace_comma(var.size)
+        else
+          rtn["prodsize"] = "N/A"
+        end
+        rtn["qty"] = li.quantity.to_s
+        rtn["cost"] = li.price.to_f.to_s
+        unless shipment.json_store_order_id[prod.merchant].empty?
+          rtn["orderno"] = shipment.json_store_order_id[prod.merchant].first
+        end
+        rtn["spnm"] = "SNAPSHOP"
+        rtn["deliveryType"] = "3"
+        rtn["custordno"] = order.number
+        rtn["category"] = convert_the82_taxon prod.get_valid_taxon
       end
-      rtn[:products] = products
       rtn
     end
 
     private
     def replace_comma string
-      string.gsub ",", " " unless string.nil?
+      if string.nil?
+        "N/A"
+      else
+        string.gsub ",", " "
+      end
+    end
+    def convert_the82_taxon taxon
+      case taxon.id
+      when 72, 82, 159, 160
+        return "ACCESSORIES"
+      when 52, 51, 64, 49, 50, 154, 48, 53, 152
+        return "BABIES GARMENTS"
+      when 79, 71, 80, 149, 146, 148, 76, 147
+        return "BAGS"
+      when 162, 163
+        return "BELT OF LEATHER"
+        #return "GLOVE OF LEATHER"
+      when 158, 150
+        return "HAT"
+      when 40, 47
+        return "KNITTED T-SHIRTS"
+      when 38
+        return "MENS COAT"
+      when 39
+        return "MENS JACKETS"
+      when 36, 37, 60
+        return "MENS PANTS"
+        #return "MENS SUITS"
+      when 34, 35
+        return "MENS T-SHIRTS"
+        #return "FABRIC GLOVES"
+        #return "OTHER GARMENT"
+        #return "SCARF"
+      when 22,24,25,155,14,59,10,13,11,12,9,26,28,29,169,65,153,16,20,17,15,19,18
+        return "SHOES"
+      when 45, 55
+        return "SKIRTS"
+      when 77
+        return "SOCKS"
+      when 73
+        return "SUNGLASSES"
+      when 81
+        return "TIE"
+        #return "VEST"
+      when 83, 84, 74, 78
+        return "WATCH"
+      when 58, 57, 151, 42
+        return "WOMANS CLOTHING"
+      when 61
+        return "WOMANS COAT"
+      when 46
+        return "WOMANS JACKETS"
+      when 43, 44, 56
+        return "WOMANS PANTS"
+      when 54, 62, 41
+        return "WOMANS T-SHIRTS"
+      end
+
     end
   end
 end

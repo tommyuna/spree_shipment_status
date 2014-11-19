@@ -82,7 +82,6 @@ namespace :shipping_update do
             shipment_status_page = scraper.get_shipment_page order_id
             shipment_divs = scraper.get_multiple_text(shipment_status_page, scraper.selectors['shipping_div'])
             shipment_divs.each do |page|
-              binding.pry
               us_tracking_id = scraper.get_single_text(page, scraper.selectors['us_tracking_id']).text
               raise "couldn't get tracking id from amazon order id#{order_id}" if us_tracking_id.nil?
               ship_log "us_tracking_id[#{us_tracking_id}]"

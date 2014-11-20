@@ -62,7 +62,7 @@ Spree::Shipment.class_eval do
     forwarding_id = page['warehouseordno']
     kr_tracking_id = page['transnum']
     self.update_columns(forwarding_id: forwarding_id)
-    self.update_columns(kr_tracking_id: kr_tracking_id)
+    self.update_columns(json_kr_tracking_id: kr_tracking_id)
   end
 
   def after_ship

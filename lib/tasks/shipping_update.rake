@@ -44,6 +44,7 @@ namespace :shipping_update do
             end
             shipment.push_us_tracking_id store, order_id, us_tracking_ids if shipment_divs.count == us_tracking_ids.count
           end
+          shipment.save!
         end
         if shipment.all_shipped?
           ship_log "shipped[#{shipment.id}]"

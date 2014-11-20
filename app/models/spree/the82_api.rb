@@ -47,9 +47,9 @@ module Spree
       rtn["authkey"] = ENV['OHMYZIP_PASSWORD']
       rtn["receiverkrnm"] = replace_comma(address.firstname)
       rtn["receiverennm"] = " "
-      rtn["mobile"] = replace_comma(address.phone)
+      rtn["mobile"] = replace_comma(address.phone).delete(' ')
       rtn["tax"] = "com"
-      rtn["zipcode"] = replace_comma(address.zipcode)
+      rtn["zipcode"] = replace_comma(address.zipcode).delete(' ')
       rtn["address1"] = replace_comma(address.address1)
       rtn["address2"] = replace_comma(address.address2)
       rtn["listpass"] = "1"

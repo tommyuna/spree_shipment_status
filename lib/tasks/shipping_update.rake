@@ -344,11 +344,10 @@ namespace :shipping_update do
       send_error_email e
     end
   end
-  #desc "test"
-  #task tmp_test: :environment do
-  #  shipment = Spree::Shipment.find(3693)
-  #  api = Spree::The82Api.new
-  #  page = api.post_shipment_status shipment
-  #  binding.pry
-  #end
+  desc "test"
+  task tmp_test: :environment do
+    shipment = Spree::Shipment.find(3692)
+    api = Spree::The82Api.new
+    page = api.post_shipment_registration shipment
+  end
 end

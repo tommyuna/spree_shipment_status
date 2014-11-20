@@ -16,8 +16,8 @@ module Spree
       parameters = {}
       parameters[:userid] = ENV['OHMYZIP_USERID']
       parameters[:authkey] = ENV['OHMYZIP_PASSWORD']
-      if shipment.forwarding_id
-        parameters[:transnum] = shipment.forwarding_id
+      if shipment.json_kr_tracking_id
+        parameters[:transnum] = shipment.json_kr_tracking_id
       else
         parameters[:orderno] = shipment.order.number
       end
@@ -28,7 +28,12 @@ module Spree
     def post_shipment_registration shipment
       parameters = self.assign_data_for_registration shipment
       page = @agent.post self.addresses['shipment_registration'], parameters
-      Nokogiri::XML(page.body)
+      rtn = {}
+      page.body.split("|").each do |str|
+        tmp = str.split("=")
+        rtn[tmp[0]] = tmp[1]
+      end
+      rtn
     end
     def assign_data_for_registration shipment
       address = shipment.address

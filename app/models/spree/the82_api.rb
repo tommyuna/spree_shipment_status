@@ -64,10 +64,8 @@ module Spree
         rtn["ominc"] = order.number
         rtn["brand"] = replace_comma(prod.brand)
         rtn["prodnm"] = replace_comma(prod.name)
-        #rtn["produrl"] = "https://gosnapshop.com/products/#{prod.slug}"
-        rtn["produrl"] = "https://gosnapshop.com/products/abercrombie-fitch-men-fashion-flap-pockets-plaid-logo-shirt"
-        #rtn["prodimage"] = "https://gosnapshop.com#{prod.images.first.attachment.url("large")}"
-        rtn["prodimage"] = "https://gosnapshop.com/spree/products/146107/large/51JtUYfwUUL.jpg?1411022625"
+        rtn["produrl"] = "https://gosnapshop.com/products/#{prod.slug}"
+        rtn["prodimage"] = "https://gosnapshop.com#{prod.images.first.attachment.url("large")}"
         properties = prod.product_properties.select {|pp| pp.property.name == 'Color'}
         unless properties.empty?
           rtn["prodcolor"] = replace_comma(properties.first.value)

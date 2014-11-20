@@ -27,6 +27,7 @@ module Spree
 
     def post_shipment_registration shipment
       parameters = self.assign_data_for_registration shipment
+      Rails.logger.info "shipping-update" + parameters
       page = @agent.post self.addresses['shipment_registration'], parameters
       rtn = {}
       page.body.split("|").each do |str|

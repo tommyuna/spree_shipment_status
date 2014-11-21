@@ -46,7 +46,7 @@ module Spree
       rtn["custid"] = ENV['OHMYZIP_USERID']
       rtn["authkey"] = ENV['OHMYZIP_PASSWORD']
       rtn["receiverkrnm"] = replace_comma(address.firstname)
-      rtn["receiverennm"] = " "
+      rtn["receiverennm"] = replace_comma("")
       rtn["mobile"] = replace_comma(address.phone).delete(' ')
       rtn["tax"] = "com"
       rtn["zipcode"] = replace_comma(address.zipcode).delete(' ')
@@ -91,7 +91,7 @@ module Spree
       if string.nil? or string.empty?
         "N/A"
       else
-        string.gsub ",", " "
+        string.gsub(",", " ").gsub("'", " ").gsub("`", " ")
       end
     end
     def convert_the82_taxon taxon

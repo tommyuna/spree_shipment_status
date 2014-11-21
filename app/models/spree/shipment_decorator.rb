@@ -57,6 +57,7 @@ Spree::Shipment.class_eval do
   end
 
   def shipment_registration
+    return if self.json_store_order_id.nil?
     api = Spree::The82Api.new
     page = api.post_shipment_registration self
     forwarding_id = page['warehouseordno']

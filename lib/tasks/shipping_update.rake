@@ -109,12 +109,12 @@ namespace :shipping_update do
     begin
       api = Spree::The82Api.new
       Spree::Shipment.where(after_shipped_state: ['local_delivery', 'local_delivery_complete']).where.not(:state => 'canceled').find_each do |shipment|
-        if shipment.forwarding_id.nil?
-          send_notify_email "forwarding_id is nil" "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
-          next
-        end
+        #if shipment.forwarding_id.nil?
+        #  send_notify_email "forwarding_id is nil", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
+        #  next
+        #end
         if (1.second.ago - shipment.created_at) > 10.days
-          send_notify_email "check shipment status" "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
+          send_notify_email "check shipment status", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
           next
         end
         page = api.post_shipment_status shipment

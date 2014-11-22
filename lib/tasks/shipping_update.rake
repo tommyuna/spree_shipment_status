@@ -119,7 +119,7 @@ namespace :shipping_update do
         end
         page = api.post_shipment_status shipment
         raise "no return from the 82 for status check" if page.nil?
-        status = page.xpath(scraper.xpaths['status']).text
+        status = page.xpath(api.xpaths['status']).text
         if status == "IC" #입고완료
           shipment.complete_local_delivery
         elsif status == "EI"  #오류입고

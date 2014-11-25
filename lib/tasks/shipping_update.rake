@@ -52,7 +52,7 @@ namespace :shipping_update do
             shipment.complete_ship
             shipment.save
           rescue Exception => e
-            ship_log "failed!!![#{shipment.id}]"
+            ship_log "failed!!! shipmentid[#{shipment.id}]"
             ship_log "failed!!![#{e}]"
           end
         end

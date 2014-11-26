@@ -19,7 +19,6 @@ namespace :shipping_update do
         ship_log "shipment store_order_id#{shipment.json_store_order_id}"
         if (1.second.ago - shipment.created_at) > 5.days
           send_notify_email "check shipment status","orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
-          next
         end
         store_order_id = shipment.json_store_order_id
         store_order_id.each do |store, order_ids|
@@ -36,7 +35,7 @@ namespace :shipping_update do
               order_status = page.at_css(scraper.selectors['shipping_status']).text.strip
               raise "couldn't get order status in amazon! store_order_id:#{id}" if order_status.nil?
               ship_log "order_status:[#{order_status}]"
-              next unless order_status == 'Shipped' or order_status == 'Delivered' or order_status == 'In transit'
+              next unless order_status == 'Shipped' or order_status == 'Delivered' or order_status == 'In transit' or order_status == 'Arriving today'
               us_tracking_id = scraper.get_tracking_id page
               raise "couldn't get tracking id from amazon order id#{order_id}" if us_tracking_id.nil?
               ship_log "us_tracking_id[#{us_tracking_id}]"
@@ -74,7 +73,6 @@ namespace :shipping_update do
         ship_log "shipment store_order_id#{shipment.json_store_order_id}"
         if (1.second.ago - shipment.created_at) > 5.days
           send_notify_email "check shipment status", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
-          next
         end
         store_order_id = shipment.json_store_order_id
         store_order_id.each do |store, order_ids|
@@ -121,11 +119,9 @@ namespace :shipping_update do
       Spree::Shipment.where(after_shipped_state: ['local_delivery', 'local_delivery_complete']).where.not(:state => 'canceled').find_each do |shipment|
         #if shipment.forwarding_id.nil?
         #  send_notify_email "forwarding_id is nil", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
-        #  next
         #end
         if (1.second.ago - shipment.created_at) > 10.days
           send_notify_email "check shipment status", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
-          next
         end
         page = api.post_shipment_status shipment
         raise "no return from the 82 for status check" if page.nil?
@@ -157,7 +153,6 @@ namespace :shipping_update do
         end
         if (1.second.ago - shipment.created_at) > 15.days
           send_notify_email "check shipment status", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
-          next
         end
         page = scraper.get_shipment_status shipment.json_kr_tracking_id
         puts page.to_html

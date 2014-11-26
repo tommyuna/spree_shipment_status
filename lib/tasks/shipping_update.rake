@@ -18,7 +18,7 @@ namespace :shipping_update do
         ship_log "shipment.id:#{shipment.id}"
         ship_log "shipment store_order_id#{shipment.json_store_order_id}"
         if (1.second.ago - shipment.created_at) > 5.days
-          send_notify_email "check shipment status" "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
+          send_notify_email "check shipment status","orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
           next
         end
         store_order_id = shipment.json_store_order_id
@@ -73,7 +73,7 @@ namespace :shipping_update do
         ship_log "shipment.id:#{shipment.id}"
         ship_log "shipment store_order_id#{shipment.json_store_order_id}"
         if (1.second.ago - shipment.created_at) > 5.days
-          send_notify_email "check shipment status" "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
+          send_notify_email "check shipment status", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
           next
         end
         store_order_id = shipment.json_store_order_id
@@ -133,7 +133,7 @@ namespace :shipping_update do
         if status == "IC" #입고완료
           shipment.complete_local_delivery
         elsif status == "EI"  #오류입고
-          send_notify_email "check shipment status:오류입고" "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
+          send_notify_email "check shipment status:오류입고", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
         elsif status == "OC"  #출고완료
           shipment.start_oversea_delivery
         elsif status == "RC"  #수취완료
@@ -152,11 +152,11 @@ namespace :shipping_update do
       scraper = Spree::The82Scraper.new
       Spree::Shipment.where(after_shipped_state: ['overseas_delivery', 'customs', 'domestic_delivery']).where.not(:state => 'canceled').find_each do |shipment|
         if shipment.json_kr_tracking_id.nil?
-          send_notify_email "json_kr_tracking_id is nil" "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
+          send_notify_email "json_kr_tracking_id is nil", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
           next
         end
         if (1.second.ago - shipment.created_at) > 15.days
-          send_notify_email "check shipment status" "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
+          send_notify_email "check shipment status", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
           next
         end
         page = scraper.get_shipment_status shipment.json_kr_tracking_id

@@ -120,20 +120,26 @@ namespace :shipping_update do
         #if shipment.forwarding_id.nil?
         #  send_notify_email "forwarding_id is nil", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
         #end
+        ship_log "processing shipment:#{shipment.id}"
         if (1.second.ago - shipment.created_at) > 10.days
+          ship_log "10days passed:#{shipment.id}"
           send_notify_email "check shipment status", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
         end
         page = api.post_shipment_status shipment
         raise "no return from the 82 for status check" if page.nil?
         status = page.xpath(api.xpaths['status']).text
+        ship_log "status:#{status}"
         if status == "IC" #입고완료
           shipment.complete_local_delivery
         elsif status == "EI"  #오류입고
+          ship_log "오류입고"
           send_notify_email "check shipment status:오류입고", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
         elsif status == "OC"  #출고완료
           shipment.start_oversea_delivery
         elsif status == "RC"  #수취완료
           shipment.complete_domestic_delivery
+        else
+          ship_log "not matched case"
         end
       end
     rescue Exception => e

@@ -45,7 +45,7 @@ module Spree
       rtn["jisa"] = 'IL'
       rtn["custid"] = ENV['OHMYZIP_USERID']
       rtn["authkey"] = ENV['OHMYZIP_PASSWORD']
-      rtn["receiverkrnm"] = replace_comma(address.firstname + "(" + order + ")")
+      rtn["receiverkrnm"] = replace_comma(address.firstname + "(" + order.number + ")")
       rtn["receiverennm"] = replace_comma("")
       rtn["mobile"] = replace_comma(address.phone).delete(' ')
       rtn["tax"] = "com"

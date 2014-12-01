@@ -49,6 +49,7 @@ namespace :shipping_update do
           begin
             ship_log "shipped[#{shipment.id}]"
             shipment.complete_ship
+            shipment.shipment_registration
             shipment.save
           rescue Exception => e
             ship_log "failed!!! shipmentid[#{shipment.id}]"
@@ -98,6 +99,7 @@ namespace :shipping_update do
           begin
             ship_log "shipped[#{shipment.id}]"
             shipment.complete_ship
+            shipment.shipment_registration
             shipment.save
           rescue Exception => e
             ship_log "failed!!![#{shipment.id}]"

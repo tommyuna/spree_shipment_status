@@ -11,7 +11,7 @@ Spree::Shipment.class_eval do
   state_machine   :after_shipped_state,   :initial  => :before_ship do
 
     before_transition :from => :before_ship, :do => :check_ship
-    after_transition :from => :before_ship, :do => :shipment_registration
+    #after_transition :from => :before_ship, :do => :shipment_registration
 
     event :complete_ship do
       transition from: :before_ship, to: :local_delivery
@@ -42,16 +42,17 @@ Spree::Shipment.class_eval do
   end   #state_machine
 
   def check_ship
-    Rails.logger.info "shipment[#{self.id}] state[#{self.state}]"
+    Rails.logger.info "shipping-update shipment[#{self.id}] state[#{self.state}]"
     if self.state != 'shipped' and self.state != 'canceled'
       if self.state == 'pending'
         self.order.payments.each do |p|
-          Rails.logger.info "payment[#{p.id}] state[#{p.state}]"
+          Rails.logger.info "shipping-update payment[#{p.id}] state[#{p.state}]"
           p.capture! if p.state == 'pending'
         end
       end
       self.reload
-      return self.ship!
+      return self.ship! if self.state == 'ready'
+      Rails.logger.info "shipping-update still pending"
     end
     true
   end
@@ -60,6 +61,7 @@ Spree::Shipment.class_eval do
     return if self.json_store_order_id.nil?
     api = Spree::The82Api.new
     page = api.post_shipment_registration self
+    Rails.logger.info "shipping-update:#{page.to_json}"
     forwarding_id = page['warehouseordno']
     kr_tracking_id = page['transnum']
     self.update_columns(forwarding_id: forwarding_id)

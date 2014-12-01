@@ -22,6 +22,7 @@ module Spree
         parameters[:orderno] = shipment.order.number
       end
       page = @agent.post self.addresses['shipment_status'], parameters
+      Rails.logger.info "shipping-update" + page.body.force_encoding('UTF-8')
       Nokogiri::XML(page.body)
     end
 
@@ -29,8 +30,8 @@ module Spree
       parameters = self.assign_data_for_registration shipment
       Rails.logger.info "shipping-update" + parameters.to_s
       page = @agent.post self.addresses['shipment_registration'], parameters
+      Rails.logger.info "shipping-update" + page.body.force_encoding('UTF-8')
       rtn = {}
-      Rails.logger.info "shipping-update" + Nokogiri::XML(page.body).text
       page.body.split("|").each do |str|
         tmp = str.split("=")
         rtn[tmp[0]] = tmp[1]

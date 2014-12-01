@@ -71,9 +71,13 @@ module Spree
         properties = prod.product_properties.select {|pp| pp.property.name == 'Color'}
         unless properties.empty?
           rtn["prodcolor"] = replace_comma(properties.first.value)
+        else
+          rtn["prodcolor"] = "N/A"
         end
         unless var.size.nil?
           rtn["prodsize"] = replace_comma(var.size)
+        else
+          rtn["prodsize"] = "N/A"
         end
         rtn["qty"] = li.quantity.to_s
         rtn["cost"] = li.price.to_f.to_s

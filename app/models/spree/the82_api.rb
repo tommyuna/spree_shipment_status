@@ -30,6 +30,7 @@ module Spree
       Rails.logger.info "shipping-update" + parameters.to_s
       page = @agent.post self.addresses['shipment_registration'], parameters
       rtn = {}
+      Rails.logger.info "shipping-update" + Nokogiri::XML(page.body).text
       page.body.split("|").each do |str|
         tmp = str.split("=")
         rtn[tmp[0]] = tmp[1]

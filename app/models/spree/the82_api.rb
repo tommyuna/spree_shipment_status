@@ -27,9 +27,13 @@ module Spree
     end
 
     def post_shipment_registration shipment
+      header = {}
+      header['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+      header['Accept-Encoding'] = 'gzip, deflate'
+      header['Accept-Language'] = 'ko-KR,ko;q=0.8,en-US;q=0.6,en;q=0.4'
       parameters = self.assign_data_for_registration shipment
       Rails.logger.info "shipping-update" + parameters.to_s
-      page = @agent.post self.addresses['shipment_registration'], parameters
+      page = @agent.post self.addresses['shipment_registration'], parameters, header
       Rails.logger.info "shipping-update" + page.body.force_encoding('UTF-8')
       rtn = {}
       page.body.split("|").each do |str|
@@ -49,17 +53,24 @@ module Spree
       rtn["authkey"] = ENV['OHMYZIP_PASSWORD']
       rtn["receiverkrnm"] = replace_comma(address.firstname + "(" + order.number + ")")
       rtn["receiverennm"] = replace_comma("")
+      rtn["telno"] = "N/A"
       rtn["mobile"] = replace_comma(address.phone).delete(' ')
+      rtn["registno"] = "N/A"
+      rtn["pgno"] = "N/A"
+      rtn["memid"] = "N/A"
       rtn["tax"] = "com"
       rtn["zipcode"] = replace_comma(address.zipcode).delete(' ')
       rtn["address1"] = replace_comma(address.address1)
       rtn["address2"] = replace_comma(address.address2)
+      rtn["deliverymemo"] = "N/A"
+      rtn["privateno"] = "N/A"
       rtn["listpass"] = "1"
       rtn["detailtype"] = "1"
       rtn["package"] = "1"
       rtn["package2"] = "1"
       rtn["isinvoice"] = "1"
       rtn["protectpackage"] = "0"
+      #rtn["isdebug"] = "1"
       order.line_items.each do |li|
         var = li.variant
         prod = li.product
@@ -81,14 +92,23 @@ module Spree
         end
         rtn["qty"] = li.quantity.to_s
         rtn["cost"] = li.price.to_f.to_s
-        unless shipment.json_store_order_id[prod.merchant].empty?
+        unless shipment.json_store_order_id[prod.merchant].nil? or shipment.json_store_order_id[prod.merchant].empty?
           rtn["orderno"] = shipment.json_store_order_id[prod.merchant].join(",")
           rtn["trackno"] = shipment.json_us_tracking_id[prod.merchant].map{|k,v|v}.join(",")
+        else
+          rtn["orderno"] = "N/A"
+          rtn["trackno"] = "N/A"
         end
         rtn["spnm"] = "SNAPSHOP"
         rtn["deliveryType"] = "3"
         rtn["custordno"] = order.number
         rtn["category"] = convert_the82_taxon prod.get_valid_taxon
+        rtn["address2"] = replace_comma(address.address2)
+        if address.other_comment.present?
+          rtn["requestmemo"] = replace_comma(address.other_comment)
+        else
+          rtn["requestmemo"] = "N/A"
+        end
       end
       rtn
     end

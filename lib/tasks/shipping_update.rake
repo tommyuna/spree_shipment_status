@@ -37,9 +37,10 @@ namespace :shipping_update do
               ship_log "order_status:[#{order_status}]"
               next unless order_status == 'Shipped' or order_status == 'Delivered' or order_status == 'In transit' or order_status == 'Arriving today'
               us_tracking_id = scraper.get_tracking_id page
-              raise "couldn't get tracking id from amazon order id#{order_id}" if us_tracking_id.nil?
-              ship_log "us_tracking_id[#{us_tracking_id}]"
-              us_tracking_ids.push us_tracking_id
+              if us_tracking_id.present?
+                ship_log "us_tracking_id[#{us_tracking_id}]"
+                us_tracking_ids.push us_tracking_id
+              end
             end
             shipment.push_us_tracking_id store, order_id, us_tracking_ids if shipment_divs.count == us_tracking_ids.count
           end

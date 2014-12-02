@@ -53,6 +53,11 @@ Spree::Shipment.class_eval do
       self.reload
       return self.ship! if self.state == 'ready'
       Rails.logger.info "shipping-update still pending"
+      #sometimes failed to capture in that case force to update state
+      if self.state == 'pending'
+        self.update_columns(state: 'shipped')
+      end
+      Rails.logger.info "shipping-update still pending"
     end
     true
   end

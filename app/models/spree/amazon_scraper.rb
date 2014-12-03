@@ -13,14 +13,14 @@ module Spree
       @selectors = get_config 'webpage.amazon.selector'
     end
 
-    def login id, password
+    def login
       @retry_cnt = 0
       begin
         page = @agent.get 'https://www.amazon.com'
         page = @agent.click page.link_with(:text => /Sign in/)
         page = page.form_with(:name => 'signIn') do |form|
-          form.email = id
-          form.password = password
+          form.email = @login_info['userid']
+          form.password = @login_info['password']
         end.submit
       rescue Net::ReadTimeout
         if @retry_cnt < 5 then
@@ -36,7 +36,13 @@ module Spree
     def get_html_doc address
       @retry_cnt = 0
       begin
-        @body = @agent.get(address).body
+        page = @agent.get(address)
+        if Nokogiri::HTML(page.body).at_css(@selectors['login_form']).present?
+          page = page.form_with(:name => 'signIn') do |form|
+            form.email = @login_info['userid']
+            form.password = @login_info['password']
+          end.submit
+        end
       rescue Net::ReadTimeout
         if @retry_cnt < 5 then
           @retry_cnt += 1
@@ -45,8 +51,8 @@ module Spree
           retry
         end
       end
-      unless @body == nil
-        return Nokogiri::HTML(@body)
+      unless page == nil
+        return Nokogiri::HTML(page.body)
       else
         return nil
       end

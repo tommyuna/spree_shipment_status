@@ -13,7 +13,7 @@ namespace :shipping_update do
     begin
       ship_log "start amazon_web_scraping"
       scraper = Spree::AmazonScraper.new
-      raise "Login failed!" unless scraper.login(scraper.login_info['userid'], scraper.login_info['password'])
+      raise "Login failed!" unless scraper.login
       Spree::Shipment.where(state: ['pending', 'ready']).where.not(:state => 'canceled').where.not(json_store_order_id: nil).find_each do |shipment|
         ship_log "shipment.id:#{shipment.id}"
         ship_log "shipment store_order_id#{shipment.json_store_order_id}"
@@ -31,6 +31,7 @@ namespace :shipping_update do
             raise "order status page not found! store_order_id:#{shipment.id}" if order_status_page == nil
             us_tracking_ids = []
             shipment_divs = scraper.get_multiple_text(order_status_page, scraper.selectors['shipping_div'])
+            ship_log "shipment_divs:#{shipment_divs.count}"
             shipment_divs.each do |page|
               order_status = page.at_css(scraper.selectors['shipping_status']).text.strip
               raise "couldn't get order status in amazon! store_order_id:#{id}" if order_status.nil?

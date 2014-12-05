@@ -147,8 +147,10 @@ Spree::Shipment.class_eval do
   def get_shipment_status
     if self.canceled?
       return "canceled"
+    elsif self.order.state == "returned"
+       return "returned"
     else
-      return self.after_shipped_state
+       return self.after_shipped_state
     end
   end
 

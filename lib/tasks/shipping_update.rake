@@ -20,6 +20,9 @@ namespace :shipping_update do
         if (1.second.ago - shipment.created_at) > 5.days
           send_notify_email "check shipment status","orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
         end
+        unless shipment.after_shipped_state == 'before_ship'
+          shipment.check_ship
+        end
         store_order_id = shipment.json_store_order_id
         store_order_id.each do |store, order_ids|
           next if store != 'amazon'
@@ -76,6 +79,9 @@ namespace :shipping_update do
         ship_log "shipment store_order_id#{shipment.json_store_order_id}"
         if (1.second.ago - shipment.created_at) > 5.days
           send_notify_email "check shipment status", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
+        end
+        unless shipment.after_shipped_state == 'before_ship'
+          shipment.check_ship
         end
         store_order_id = shipment.json_store_order_id
         store_order_id.each do |store, order_ids|

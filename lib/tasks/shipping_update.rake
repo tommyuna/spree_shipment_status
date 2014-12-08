@@ -22,7 +22,6 @@ namespace :shipping_update do
         where('created_at < ?', DateTime.new(2014,12,7,15)). #ending with december 8th
         find_each do |shipment|
 
-        end
         ship_log "shipment.id:#{shipment.id}"
         ship_log "shipment store_order_id#{shipment.json_store_order_id}"
         if (1.second.ago - shipment.created_at) > 5.days

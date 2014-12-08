@@ -10,6 +10,7 @@ module Spree
       @addresses = get_config 'api.the82.address'
       @selectors = get_config 'api.the82.selector'
       @xpaths = get_config 'api.the82.xpath'
+      @korean_name_convert = YAML.load_file("#{Rails.root}/config/korean_name_convert.yml")
     end
 
     def post_shipment_status shipment
@@ -51,8 +52,8 @@ module Spree
       rtn["jisa"] = 'IL'
       rtn["custid"] = ENV['OHMYZIP_USERID']
       rtn["authkey"] = ENV['OHMYZIP_PASSWORD']
-      rtn["receiverkrnm"] = replace_comma(address.firstname + "(" + order.number + ")")
-      rtn["receiverennm"] = replace_comma("")
+      rtn["receiverkrnm"] = replace_comma(address.firstname)
+      rtn["receiverennm"] = convert_korean_name(rtn["receiverkrnm"])
       rtn["telno"] = "N/A"
       rtn["mobile"] = replace_comma(address.phone).delete(' ')
       rtn["registno"] = "N/A"
@@ -71,10 +72,11 @@ module Spree
       rtn["isinvoice"] = "1"
       rtn["protectpackage"] = "0"
       #rtn["isdebug"] = "1"
+      order_no = "#{order.number}-#{Time.now.to_i}" 
       order.line_items.each do |li|
         var = li.variant
         prod = li.product
-        rtn["ominc"] = order.number
+        rtn["ominc"] = order_no
         rtn["brand"] = replace_comma(prod.brand)
         rtn["prodnm"] = replace_comma(prod.name)
         rtn["produrl"] = "https://gosnapshop.com/products/#{prod.slug}"
@@ -101,7 +103,7 @@ module Spree
         end
         rtn["spnm"] = "SNAPSHOP"
         rtn["deliveryType"] = "3"
-        rtn["custordno"] = order.number
+        rtn["custordno"] = order_no
         rtn["category"] = convert_the82_taxon prod.get_valid_taxon
         rtn["address2"] = replace_comma(address.address2)
         if address.other_comment.present?
@@ -114,6 +116,14 @@ module Spree
     end
 
     private
+    def convert_korean_name name
+      english_name = ""
+      name.each_char do |ch|
+        english_name += "#{@korean_name_convert[ch]} " if @korean_name_convert[ch].present?
+      end
+      english_name.strip
+    end
+
     def replace_comma string
       if string.nil? or string.empty?
         "N/A"

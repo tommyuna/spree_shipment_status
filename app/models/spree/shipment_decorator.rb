@@ -58,11 +58,11 @@ Spree::Shipment.class_eval do
       Rails.logger.info "shipping-update state #{self.state}"
       if self.state == 'ready'
         Rails.logger.info "shipping-update it's ready to ship"
-        return self.ship!
       else
-        Rails.logger.info "shipping-update force to update to shipped"
-        self.update_columns(state: 'shipped')
+        Rails.logger.info "shipping-update force to update to ready"
+        self.update_columns(state: 'ready')
       end
+      return self.ship!
     end
     true
   end

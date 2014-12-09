@@ -89,6 +89,7 @@ Spree::Shipment.class_eval do
   def all_shipped?
     return false if self.json_store_order_id.nil?
     self.json_store_order_id.each do |store, order_ids|
+      next if order_ids.first == "FAILED"
       return false if self.json_us_tracking_id.nil? or self.json_us_tracking_id.empty?
       return false if self.json_us_tracking_id[store].nil? or self.json_us_tracking_id[store].empty?
       order_ids.each do |order_id|
@@ -110,6 +111,7 @@ Spree::Shipment.class_eval do
     store_order_id[store].flatten!
     store_order_id[store].uniq!
     store_order_id[store].each do |id|
+      next if id == "FAILED"
       us_tracking_id[store][id] = [] if us_tracking_id[store][id].nil?
     end
     self.update_columns(:json_store_order_id => store_order_id)

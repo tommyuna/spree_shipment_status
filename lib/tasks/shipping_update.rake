@@ -109,7 +109,9 @@ namespace :shipping_update do
             ship_log "store:#{store}, order_id:#{order_id}"
             order_status_page = scraper.get_order_page order_id
             raise "order status page not found! store_order_id:#{shipment.id}" if order_status_page == nil
-            next if "Shipped" != scraper.get_single_text(order_status_page, scraper.selectors['order_status']).text
+            status = scraper.get_single_text(order_status_page, scraper.selectors['order_status'])
+            next if status.nil? or "Shipped" != status
+            ship_log "status:#{status.text}"
             us_tracking_ids = []
             shipment_status_page = scraper.get_shipment_page order_id
             shipment_divs = scraper.get_multiple_text(shipment_status_page, scraper.selectors['shipping_div'])

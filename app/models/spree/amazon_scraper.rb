@@ -58,7 +58,9 @@ module Spree
       end
     end
     def get_tracking_id page
-      addr = (page.at_css(self.selectors['tracking_link']).attribute 'href').value
+      tracking_link = page.at_css(self.selectors['tracking_link'])
+      return 'N/A' if tracking_link.nil?
+      addr = (tracking_link.attribute 'href').value
       page = @agent.get addr
       tracking_id = Nokogiri::HTML(page.body).at_css self.selectors['us_tracking_id']
       return tracking_id.text if tracking_id.present?

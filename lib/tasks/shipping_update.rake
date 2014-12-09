@@ -46,7 +46,12 @@ namespace :shipping_update do
               order_status = page.at_css(scraper.selectors['shipping_status']).text.strip
               raise "couldn't get order status in amazon! store_order_id:#{id}" if order_status.nil?
               ship_log "order_status:[#{order_status}]"
-              state_array = ['Shipped', 'Delivered', 'In transit', 'Arriving today', 'Arriving tomorrow']
+              state_array = ['Shipped',
+                             'Delivered',
+                             'Delivered today',
+                             'In transit',
+                             'Arriving today',
+                             'Arriving tomorrow']
               next unless state_array.include? order_status
               us_tracking_id = scraper.get_tracking_id page
               if us_tracking_id.present?

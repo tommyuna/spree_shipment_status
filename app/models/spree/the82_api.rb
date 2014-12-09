@@ -53,7 +53,7 @@ module Spree
       rtn["custid"] = ENV['OHMYZIP_USERID']
       rtn["authkey"] = ENV['OHMYZIP_PASSWORD']
       rtn["receiverkrnm"] = replace_comma(address.firstname)
-      rtn["receiverennm"] = convert_korean_name(rtn["receiverkrnm"])
+      rtn["receiverennm"] = convert_korean_name(replace_comma(address.firstname))
       rtn["telno"] = "N/A"
       rtn["mobile"] = replace_comma(address.phone).delete(' ')
       rtn["registno"] = "N/A"

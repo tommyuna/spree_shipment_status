@@ -105,7 +105,6 @@ module Spree
         rtn["deliveryType"] = "3"
         rtn["custordno"] = order_no
         rtn["category"] = convert_the82_taxon prod.get_valid_taxon
-        rtn["address2"] = replace_comma(address.address2)
         if address.other_comment.present?
           rtn["requestmemo"] = replace_comma(address.other_comment)
         else

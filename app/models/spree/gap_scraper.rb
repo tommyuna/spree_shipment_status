@@ -15,7 +15,7 @@ module Spree
       @page = @agent.get self.addresses['order_status']
       @page = @page.form_with(:name => 'OrderLookupForm') do |form|
         form.orderNumber = order_id
-        form.newEmailAddress = "hello@luuv.it"
+        form.newEmailAddress = "gosnap12@gmail.com"
       end.submit
       Nokogiri::HTML(@page.body)
     end

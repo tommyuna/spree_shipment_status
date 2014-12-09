@@ -93,7 +93,6 @@ namespace :shipping_update do
         where.not(json_store_order_id: nil).
         where('created_at > ?', DateTime.new(2014,12,5,15)). #starting from december 7th
         find_each do |shipment|
-
         ship_log "shipment.id:#{shipment.id}"
         ship_log "shipment store_order_id#{shipment.json_store_order_id}"
         if (1.second.ago - shipment.created_at) > 5.days
@@ -110,16 +109,16 @@ namespace :shipping_update do
             order_status_page = scraper.get_order_page order_id
             raise "order status page not found! store_order_id:#{shipment.id}" if order_status_page == nil
             status = scraper.get_single_text(order_status_page, scraper.selectors['order_status'])
-            next if status.nil? or "Shipped" != status
+            next if status.nil? or "Shipped" != status.text
             ship_log "status:#{status.text}"
             us_tracking_ids = []
             shipment_status_page = scraper.get_shipment_page order_id
             shipment_divs = scraper.get_multiple_text(shipment_status_page, scraper.selectors['shipping_div'])
             shipment_divs.each do |page|
-              us_tracking_id = scraper.get_single_text(page, scraper.selectors['us_tracking_id']).text
+              us_tracking_id = scraper.get_single_text(page, scraper.selectors['us_tracking_id'])
               raise "couldn't get tracking id from amazon order id#{order_id}" if us_tracking_id.nil?
-              ship_log "us_tracking_id[#{us_tracking_id}]"
-              us_tracking_ids.push us_tracking_id
+              ship_log "us_tracking_id[#{us_tracking_id.text.strip}]"
+              us_tracking_ids.push us_tracking_id.text.strip
             end
             shipment.push_us_tracking_id store, order_id, us_tracking_ids
           end

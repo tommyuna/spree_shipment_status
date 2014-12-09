@@ -18,8 +18,7 @@ namespace :shipping_update do
         where(state: ['pending', 'ready']).
         where.not(:state => 'canceled').
         where.not(json_store_order_id: nil).
-        where('created_at > ?', DateTime.new(2014,12,5,15)). #starting from december 7th
-        where('created_at < ?', DateTime.new(2014,12,6,15)). #ending with december 8th
+        where('created_at > ?', DateTime.new(2014,12,6,15)). #starting from december 7th
         find_each do |shipment|
 
         ship_log "shipment.id:#{shipment.id}"
@@ -91,7 +90,7 @@ namespace :shipping_update do
         where(state: ['pending', 'ready']).
         where.not(:state => 'canceled').
         where.not(json_store_order_id: nil).
-        where('created_at > ?', DateTime.new(2014,12,5,15)). #starting from december 7th
+        where('created_at > ?', DateTime.new(2014,12,6,15)). #starting from december 7th
         find_each do |shipment|
         ship_log "shipment.id:#{shipment.id}"
         ship_log "shipment store_order_id#{shipment.json_store_order_id}"

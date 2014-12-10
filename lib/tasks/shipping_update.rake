@@ -152,6 +152,7 @@ namespace :shipping_update do
         find_each do |shipment|
         if shipment.forwarding_id.nil?
           send_notify_email "forwarding_id is nil", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
+          next
         end
         ship_log "processing shipment:#{shipment.id}"
         if (1.second.ago - shipment.created_at) > 10.days

@@ -80,6 +80,10 @@ module Spree
       #rtn["isdebug"] = "1"
       order_no = "#{order.number}-#{Time.now.to_i}" 
       order.line_items.each do |li|
+        if shipment.json_store_order_id[prod.merchant].present? and shipment.json_store_order_id[prod.merchant] == 'FAILED'
+          Rails.logger.info "shipping-update failed product skip!#{shipment.json_store_order_id}"
+          next
+        end
         var = li.variant
         prod = li.product
         rtn["ominc"] = order_no

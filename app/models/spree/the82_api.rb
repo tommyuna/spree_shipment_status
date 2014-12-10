@@ -19,8 +19,10 @@ module Spree
       parameters[:authkey] = ENV['OHMYZIP_PASSWORD']
       if shipment.json_kr_tracking_id
         parameters[:transnum] = shipment.json_kr_tracking_id
+      elsif shipment.forwarding_id
+        parameters[:orderno] = shipment.forwarding_id
       else
-        parameters[:orderno] = shipment.order.number
+        return nil
       end
       page = @agent.post self.addresses['shipment_status'], parameters
       Rails.logger.info "shipping-update" + page.body.force_encoding('UTF-8')
@@ -63,7 +65,11 @@ module Spree
       rtn["zipcode"] = replace_comma(address.zipcode).delete(' ')
       rtn["address1"] = replace_comma(address.address1)
       rtn["address2"] = replace_comma(address.address2)
-      rtn["deliverymemo"] = "N/A"
+      if address.other_comment.present?
+        rtn["deliverymemo"] = replace_comma(address.other_comment)
+      else
+        rtn["deliverymemo"] = "N/A"
+      end
       rtn["privateno"] = "N/A"
       rtn["listpass"] = "1"
       rtn["detailtype"] = "1"

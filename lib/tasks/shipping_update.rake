@@ -18,7 +18,7 @@ namespace :shipping_update do
         where(state: ['pending', 'ready']).
         where.not(:state => 'canceled').
         where.not(json_store_order_id: nil).
-        where('created_at > ?', DateTime.new(2014,12,6,15)). #starting from december 7th
+        where('created_at >= ?', DateTime.new(2014,12,6)).
         find_each do |shipment|
 
         ship_log "shipment.id:#{shipment.id}"
@@ -90,7 +90,7 @@ namespace :shipping_update do
         where(state: ['pending', 'ready']).
         where.not(:state => 'canceled').
         where.not(json_store_order_id: nil).
-        where('created_at > ?', DateTime.new(2014,12,6,15)). #starting from december 7th
+        where('created_at >= ?', DateTime.new(2014,12,6)).
         find_each do |shipment|
         ship_log "shipment.id:#{shipment.id}"
         ship_log "shipment store_order_id#{shipment.json_store_order_id}"
@@ -145,10 +145,14 @@ namespace :shipping_update do
   task the82_api_update: :environment do
     begin
       api = Spree::The82Api.new
-      Spree::Shipment.where(after_shipped_state: ['local_delivery', 'local_delivery_complete']).where.not(:state => 'canceled').find_each do |shipment|
-        #if shipment.forwarding_id.nil?
-        #  send_notify_email "forwarding_id is nil", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
-        #end
+      Spree::Shipment.
+        where(after_shipped_state: ['local_delivery', 'local_delivery_complete']).
+        where.not(:state => 'canceled').
+        where('created_at >= ?', DateTime.new(2014,12,6)).
+        find_each do |shipment|
+        if shipment.forwarding_id.nil?
+          send_notify_email "forwarding_id is nil", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
+        end
         ship_log "processing shipment:#{shipment.id}"
         if (1.second.ago - shipment.created_at) > 10.days
           ship_log "10days passed:#{shipment.id}"
@@ -156,17 +160,15 @@ namespace :shipping_update do
         end
         page = api.post_shipment_status shipment
         raise "no return from the 82 for status check" if page.nil?
-        status = page.xpath(api.xpaths['status']).text
+        status = page.xpath(api.xpaths['status']).text.scan(/.{2}/)
         ship_log "status:#{status}"
-        if status == "IC" #입고완료
-          shipment.complete_local_delivery
-        elsif status == "EI"  #오류입고
-          ship_log "오류입고"
-          send_notify_email "check shipment status:오류입고", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
-        elsif status == "OC"  #출고완료
+        if status.include? "OC" #출고완료
           shipment.start_oversea_delivery
-        elsif status == "RC"  #수취완료
-          shipment.complete_domestic_delivery
+        elsif status.all?{|st| st == "IC" } #입고완료
+          shipment.complete_local_delivery
+        elsif status.any?{|st| st == "EI" } #오류입고
+          ship_log "오류입고"
+          send_notify_email "check shipment status:오류입고", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at} / #{page.xpath(api.xpaths['error']).text}"
         else
           ship_log "not matched case"
         end
@@ -390,5 +392,6 @@ namespace :shipping_update do
     shipment = Spree::Shipment.find(3692)
     api = Spree::The82Api.new
     page = api.post_shipment_registration shipment
+    puts page
   end
 end

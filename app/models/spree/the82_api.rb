@@ -105,8 +105,8 @@ module Spree
         rtn["qty"] = li.quantity.to_s
         rtn["cost"] = li.price.to_f.to_s
         unless shipment.json_store_order_id[prod.merchant].nil? or shipment.json_store_order_id[prod.merchant].empty?
-          rtn["orderno"] = shipment.json_store_order_id[prod.merchant].join(",")
-          rtn["trackno"] = shipment.json_us_tracking_id[prod.merchant].map{|k,v|v}.join(",")
+          rtn["orderno"] = shipment.json_store_order_id[prod.merchant].join(";")
+          rtn["trackno"] = shipment.json_us_tracking_id[prod.merchant].map{|k,v|v}.join(";")
         else
           rtn["orderno"] = "N/A"
           rtn["trackno"] = "N/A"

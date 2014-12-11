@@ -88,8 +88,12 @@ Spree::Shipment.class_eval do
 
   def all_shipped?
     return false if self.json_store_order_id.nil?
+    store_count = self.json_store_order_id.count
+    failed_count = 0
     self.json_store_order_id.each do |store, order_ids|
-      next if order_ids.first == "FAILED"
+      if order_ids.first == "FAILED"
+        failed_count += 1
+      end
       next unless ['gap','bananarepublic','amazon'].include? store
       return false if self.json_us_tracking_id.nil? or self.json_us_tracking_id.empty?
       return false if self.json_us_tracking_id[store].nil? or self.json_us_tracking_id[store].empty?
@@ -97,6 +101,8 @@ Spree::Shipment.class_eval do
         return false if self.json_us_tracking_id[store][order_id].nil? or self.json_us_tracking_id[store][order_id].empty?
       end
     end
+    return false if store_count == failed_count
+    true
   end
 
   def push_store_order_id store, order_id

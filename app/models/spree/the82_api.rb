@@ -106,8 +106,14 @@ module Spree
         rtn["qty"] = li.quantity.to_s
         rtn["cost"] = li.price.to_f.to_s
         unless shipment.json_store_order_id[prod.merchant].nil? or shipment.json_store_order_id[prod.merchant].empty?
-          rtn["orderno"] = shipment.json_store_order_id[prod.merchant].join(";")
-          rtn["trackno"] = shipment.json_us_tracking_id[prod.merchant].map{|k,v|v}.join(";")
+          orderno = shipment.json_store_order_id[prod.merchant].join(" ")
+          trackno = shipment.json_us_tracking_id[prod.merchant].map{|k,v|v}.join(" ")
+          if orderno.length < 50 and trackno.length < 50
+            rtn["orderno"] = orderno
+            rtn["trackno"] = trackno
+          else
+            Rails.logger.info "shipping-update check orderno and trackno"
+          end
         else
           rtn["orderno"] = "N/A"
           rtn["trackno"] = "N/A"

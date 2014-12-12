@@ -199,6 +199,8 @@ module Spree
         return "WOMANS PANTS"
       when 54, 62, 41
         return "WOMANS T-SHIRTS"
+      else
+        return "ACCESSORIES"
       end
 
     end

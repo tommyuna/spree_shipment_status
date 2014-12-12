@@ -113,6 +113,8 @@ module Spree
             rtn["trackno"] = trackno
           else
             Rails.logger.info "shipping-update check orderno and trackno"
+            rtn["orderno"] = "manual input"
+            rtn["trackno"] = "manual input"
           end
         else
           rtn["orderno"] = "N/A"

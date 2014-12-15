@@ -5,8 +5,8 @@ ko:
       before_ship: 미국내 배송전
       local_delivery: 미국내 배송중
       local_delivery_complete: 미국내 배송완료
-      overseas_delivery: 국제 항공배송중
-      customs: 국제 항공배송 완료 및 통관중
+      overseas_delivery: 국제항공 배송중
+      customs: 국제항공 배송완료 및 통관중
       domestic_delivery: 국내택배 배송중
       delivered: 국내택배 배송완료
       canceled: 취소됨

@@ -2,12 +2,12 @@ ko:
   spree:
     after_shipped_state: 상세 배송상태
     after_shipped_states:
-      before_ship: 배송전
-      local_delivery: 현지배송중
-      local_delivery_complete: 현지배송완료
-      overseas_delivery: 국제배송중
-      customs: 국제배송완료 및 통관중
-      domestic_delivery: 국내배송중
-      delivered: 국내배송완료
+      before_ship: 미국내 배송전
+      local_delivery: 미국내 배송중
+      local_delivery_complete: 미국내 배송완료
+      overseas_delivery: 국제 항공배송중
+      customs: 국제 항공배송 완료 및 통관중
+      domestic_delivery: 국내택배 배송중
+      delivered: 국내택배 배송완료
       canceled: 취소됨
       returned: 항목 반환

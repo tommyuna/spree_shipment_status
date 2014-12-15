@@ -24,7 +24,7 @@ namespace :shipping_update do
         ship_log "shipment.id:#{shipment.id}"
         ship_log "shipment store_order_id#{shipment.json_store_order_id}"
         if (1.second.ago - shipment.created_at) > 5.days
-          send_notify_email "check shipment status","orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
+          send_notify_email "check shipment status","orderid: #{shipment.order.number} / created_at:#{shipment.created_at}"
         end
         unless shipment.after_shipped_state == 'before_ship'
           shipment.check_ship
@@ -95,7 +95,7 @@ namespace :shipping_update do
         ship_log "shipment.id:#{shipment.id}"
         ship_log "shipment store_order_id#{shipment.json_store_order_id}"
         if (1.second.ago - shipment.created_at) > 5.days
-          send_notify_email "check shipment status", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
+          send_notify_email "check shipment status", "orderid: #{shipment.order.number} / created_at:#{shipment.created_at}"
         end
         unless shipment.after_shipped_state == 'before_ship'
           shipment.check_ship
@@ -151,13 +151,13 @@ namespace :shipping_update do
         where('created_at >= ?', DateTime.new(2014,12,6)).
         find_each do |shipment|
         if shipment.forwarding_id.nil?
-          send_notify_email "forwarding_id is nil", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
+          send_notify_email "forwarding_id is nil", "orderid: #{shipment.order.number} / created_at:#{shipment.created_at}"
           next
         end
         ship_log "processing shipment:#{shipment.id}"
         if (1.second.ago - shipment.created_at) > 10.days
           ship_log "10days passed:#{shipment.id}"
-          send_notify_email "check shipment status", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
+          send_notify_email "check shipment status", "orderid: #{shipment.order.number} / created_at:#{shipment.created_at}"
         end
         page = api.post_shipment_status shipment
         raise "no return from the 82 for status check" if page.nil?
@@ -169,7 +169,7 @@ namespace :shipping_update do
           shipment.complete_local_delivery
         elsif status.any?{|st| st == "EI" } #오류입고
           ship_log "오류입고"
-          send_notify_email "check shipment status:오류입고", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at} / #{page.xpath(api.xpaths['error']).text}"
+          send_notify_email "check shipment status:오류입고", "orderid: #{shipment.order.number} / created_at:#{shipment.created_at} / #{page.xpath(api.xpaths['error']).text}"
         else
           ship_log "not matched case"
         end
@@ -186,11 +186,11 @@ namespace :shipping_update do
       scraper = Spree::The82Scraper.new
       Spree::Shipment.where(after_shipped_state: ['overseas_delivery', 'customs', 'domestic_delivery']).where.not(:state => 'canceled').find_each do |shipment|
         if shipment.json_kr_tracking_id.nil?
-          send_notify_email "json_kr_tracking_id is nil", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
+          send_notify_email "json_kr_tracking_id is nil", "orderid: #{shipment.order.number} / created_at:#{shipment.created_at}"
           next
         end
         if (1.second.ago - shipment.created_at) > 15.days
-          send_notify_email "check shipment status", "orderid:#{shipment.order.number} / created_at:#{shipment.created_at}"
+          send_notify_email "check shipment status", "orderid: #{shipment.order.number} / created_at:#{shipment.created_at}"
         end
         page = scraper.get_shipment_status shipment.json_kr_tracking_id
         puts page.to_html

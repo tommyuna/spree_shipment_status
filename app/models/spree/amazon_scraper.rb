@@ -64,7 +64,7 @@ module Spree
       page = @agent.get addr
       tracking_id = Nokogiri::HTML(page.body).at_css self.selectors['us_tracking_id']
       return tracking_id.text if tracking_id.present?
-      nil
+      "N/A"
     end
   end
 end

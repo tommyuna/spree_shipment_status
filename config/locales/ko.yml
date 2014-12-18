@@ -11,3 +11,10 @@ ko:
       delivered: 국내택배 배송완료
       canceled: 취소됨
       returned: 항목 반환
+    order_place_state:
+      complete: 완료
+      complete_failed: 완료(실패)
+      canceled: 취소
+      canceled_failed: 취소(실패)
+      returned: 반품
+      returned_failed: 반품(실패)

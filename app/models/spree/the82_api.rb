@@ -150,6 +150,7 @@ module Spree
       end
     end
     def convert_the82_taxon taxon
+      return "ACCESSORIES" if taxon.nil?
       case taxon.id
       when 72, 82, 159, 160
         return "ACCESSORIES"

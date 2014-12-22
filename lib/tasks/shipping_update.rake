@@ -184,7 +184,10 @@ namespace :shipping_update do
   task tracking_korean_shipping: :environment do
     begin
       scraper = Spree::The82Scraper.new
-      Spree::Shipment.where(after_shipped_state: ['overseas_delivery', 'customs', 'domestic_delivery']).where.not(:state => 'canceled').find_each do |shipment|
+      Spree::Shipment.where(after_shipped_state: ['overseas_delivery', 'customs', 'domestic_delivery']).
+        where.not(:state => 'canceled').
+        where('created_at >= ?', DateTime.new(2014,12,6)).
+        find_each do |shipment|
         if shipment.json_kr_tracking_id.nil?
           send_notify_email "json_kr_tracking_id is nil", "orderid: #{shipment.order.number} / created_at:#{shipment.created_at}"
           next

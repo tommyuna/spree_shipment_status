@@ -9,8 +9,8 @@ ko:
       customs: 국제항공 배송완료 및 통관중
       domestic_delivery: 국내택배 배송중
       delivered: 국내택배 배송완료
-      canceled: 취소됨
-      returned: 항목 반환
+      canceled: 주문 취소
+      returned: 상품 반품
     order_place_state:
       complete: 완료
       complete_failed: 완료(실패)

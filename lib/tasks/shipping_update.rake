@@ -2,11 +2,11 @@ namespace :shipping_update do
   def send_error_email exception
     Spree::NotifyMailer.notify_email("failed to update shipping status:[#{exception.message}]", exception.backtrace).deliver
   end
-  def send_notify_email subject, body
-    Spree::NotifyMailer.notify_email(subject, body).deliver
-  end
   def ship_log str
     Rails.logger.info "shipping-update:#{str}"
+  end
+  def send_notify_email subject, body
+    #Spree::NotifyMailer.notify_email(subject, body).deliver
   end
   desc "shipping status update from amazon web-page"
   task amazon_web_scraping: :environment do

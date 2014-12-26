@@ -146,7 +146,7 @@ namespace :shipping_update do
     begin
       api = Spree::The82Api.new
       Spree::Shipment.
-        where(after_shipped_state: ['local_delivery', 'local_delivery_complete']).
+        where(after_shipped_state: ['local_delivery', 'local_delivery_complete', 'overseas_delivery', 'customs', 'domestic_delivery']).
         where.not(:state => 'canceled').
         where('created_at >= ?', DateTime.new(2014,12,6)).
         find_each do |shipment|
@@ -167,6 +167,8 @@ namespace :shipping_update do
           shipment.start_oversea_delivery
         elsif status.all?{|st| st == "IC" } #입고완료
           shipment.complete_local_delivery
+        elsif status.all?{|st| st == "RC" } #고객수령완료
+          shipment.complete_domestic_delivery
         elsif status.any?{|st| st == "EI" } #오류입고
           ship_log "오류입고"
           send_notify_email "check shipment status:오류입고", "orderid: #{shipment.order.number} / created_at:#{shipment.created_at} / #{page.xpath(api.xpaths['error']).text}"

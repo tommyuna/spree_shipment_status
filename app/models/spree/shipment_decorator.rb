@@ -44,14 +44,12 @@ Spree::Shipment.class_eval do
   def check_ship
     Rails.logger.info "shipping-update shipment[#{self.id}] state[#{self.state}]"
     if self.state != 'shipped' and self.state != 'canceled'
-      if self.state == 'pending'
-        self.order.payments.each do |p|
-          Rails.logger.info "shipping-update payment[#{p.id}] state[#{p.state}]"
-          begin
-            p.capture! if p.state == 'pending'
-          rescue Exception => e
-            Rails.logger.info "shipping-update capture failed![#{e}]"
-          end
+      self.order.payments.each do |p|
+        Rails.logger.info "shipping-update payment[#{p.id}] state[#{p.state}]"
+        begin
+          p.capture! if p.state == 'pending'
+        rescue Exception => e
+          Rails.logger.info "shipping-update capture failed![#{e}]"
         end
       end
       self.reload

@@ -159,15 +159,17 @@ namespace :shipping_update do
         tracking_id_list.flatten!
         ship_log "tracking_id_list:#{tracking_id_list}"
         next if tracking_id_list.empty?
-        shipment.complete_local_delivery if tracking_id_list.all? do |tracking_id|
+        id_count = tracking_id_list.count
+        delivered_count = 0
+        tracking_id_list.each do |tracking_id|
           ship_log "#{tracking_id}"
-          return false if tracking_id == 'N/A'
+          next if tracking_id == 'N/A'
           status = scraper.get_status(tracking_id)
-          return false if status.nil? or status.text.nil?
+          next if status.nil? or status.text.nil?
           ship_log "#{tracking_id}:#{status.text}"
-          return true if status.present? and status == "Delivered"
-          false
+          delivered_count += 1 if status.present? and (status.text == "Delivered" or status.text == 'Tracking Information Expired')
         end
+        shipment.complete_local_delivery if id_count == delivered_count
       end
     rescue Exception => e
       ship_log "error occured: #{$!}"

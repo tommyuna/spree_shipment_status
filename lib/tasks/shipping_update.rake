@@ -9,9 +9,9 @@ namespace :shipping_update do
     #Spree::NotifyMailer.notify_email(subject, body).deliver
   end
   desc "shipping status update from amazon web-page"
-  task amazon_web_scraping: :environment do
+  task amazon_scraping: :environment do
     begin
-      ship_log "start amazon_web_scraping"
+      ship_log "start amazon_scraping"
       scraper = Spree::AmazonScraper.new
       raise "Login failed!" unless scraper.login
       Spree::Shipment.
@@ -140,6 +140,38 @@ namespace :shipping_update do
       send_error_email e
     end
   end
+  desc "shipping status update from packagetrackr"
+  task packagetrackr_scraping: :environment do
+    begin
+      ship_log "start amazon_web_scraping"
+      scraper = Spree::PackagetrackrScraper.new
+      Spree::Shipment.
+        where(:state => 'shipped').
+        where(:after_shipped_state => 'local_delivery')
+        where.not(json_store_order_id: nil).
+        where('created_at >= ?', DateTime.new(2014,12,6)).
+        find_each do |shipment|
+        json_us_tracking_id = shipment.json_us_tracking_id
+        tracking_id_list = []
+        json_us_tracking_id.each do |store, order_ids|
+          order_ids.map {|order_id, tracking_ids| tracking_id_list.push tracking_ids}
+        end
+        tracking_id_list.flatten!
+        next if tracking_id_list.empty?
+        shipment.complete_local_delivery if tracking_id_list.all? do |tracking_id|
+          return false if tracking_id == 'N/A'
+          status = scraper.get_status(tracking_id)
+          ship_log "#{tracking_id}:#{status}"
+          return true if status.present? and status == "Delivered"
+          false
+        end
+      end
+    rescue Exception => e
+      ship_log "error occured: #{$!}"
+      ship_log e.backtrace
+      send_error_email e
+    end
+  end
 
   desc "getting information from the82"
   task the82_api_update: :environment do
@@ -165,8 +197,12 @@ namespace :shipping_update do
         ship_log "status:#{status}"
         if status.include? "OC" #출고완료
           shipment.start_oversea_delivery
-        elsif status.all?{|st| st == "IC" } #입고완료
-          shipment.complete_local_delivery
+        elsif status.include? "IC"
+          if status.all?{|st| st == "IC" } 
+            shipment.complete_DC_stock # 전체입고완료
+          else
+            shipment.partially_complete_DC_stock # 부분입고완료
+          end
         elsif status.all?{|st| st == "RC" } #고객수령완료
           shipment.complete_domestic_delivery
         elsif status.any?{|st| st == "EI" } #오류입고

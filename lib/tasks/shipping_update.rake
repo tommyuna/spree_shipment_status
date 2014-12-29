@@ -143,11 +143,11 @@ namespace :shipping_update do
   desc "shipping status update from packagetrackr"
   task packagetrackr_scraping: :environment do
     begin
-      ship_log "start amazon_web_scraping"
+      ship_log "start packagetrackr_scraping"
       scraper = Spree::PackagetrackrScraper.new
       Spree::Shipment.
         where(:state => 'shipped').
-        where(:after_shipped_state => 'local_delivery')
+        where(:after_shipped_state => 'local_delivery').
         where.not(json_store_order_id: nil).
         where('created_at >= ?', DateTime.new(2014,12,6)).
         find_each do |shipment|
@@ -157,11 +157,14 @@ namespace :shipping_update do
           order_ids.map {|order_id, tracking_ids| tracking_id_list.push tracking_ids}
         end
         tracking_id_list.flatten!
+        ship_log "tracking_id_list:#{tracking_id_list}"
         next if tracking_id_list.empty?
         shipment.complete_local_delivery if tracking_id_list.all? do |tracking_id|
+          ship_log "#{tracking_id}"
           return false if tracking_id == 'N/A'
           status = scraper.get_status(tracking_id)
-          ship_log "#{tracking_id}:#{status}"
+          return false if status.nil? or status.text.nil?
+          ship_log "#{tracking_id}:#{status.text}"
           return true if status.present? and status == "Delivered"
           false
         end

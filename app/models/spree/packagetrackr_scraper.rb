@@ -29,10 +29,10 @@ module Spree
       end
     end
     def get_status tracking_id
-      address = "#{@addresses[:track]}#{tracking_id}"
+      address = "#{@addresses['track']}#{tracking_id}"
       page = self.get_html_doc address
       if page.present?
-        status = self.get_single_text page, @selectors[:status]
+        status = self.get_single_text page, @selectors['status']
       end
       status
     end

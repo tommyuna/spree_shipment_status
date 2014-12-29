@@ -203,7 +203,6 @@ module Spree
       else
         return "ACCESSORIES"
       end
-
     end
   end
 end

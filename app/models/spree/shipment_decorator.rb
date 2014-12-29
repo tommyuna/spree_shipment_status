@@ -2,11 +2,12 @@ Spree::Shipment.class_eval do
   scope :before_ship,             -> { with_state('before_ship') }
   scope :local_delivery,          -> { with_state('local_delivery') }
   scope :local_delivery_complete, -> { with_state('local_delivery_complete') }
+  scope :DC_partially_stocked,    -> { with_state('DC_partially_stocked') }
+  scope :DC_stocked,              -> { with_state('DC_stocked') }
   scope :overseas_delivery,       -> { with_state('overseas_delivery') }
   scope :customs,                 -> { with_state('customs') }
   scope :domestic_delivery,       -> { with_state('domestic_delivery') }
   scope :delivered,               -> { with_state('delivered') }
-
 
   state_machine   :after_shipped_state,   :initial  => :before_ship do
 
@@ -19,25 +20,23 @@ Spree::Shipment.class_eval do
     event :complete_local_delivery do
       transition from: [:before_ship, :local_delivery], to: :local_delivery_complete
     end
+    event :partially_complete_DC_stock do
+      transition from: [:before_ship, :local_delivery, :local_delivery_complete], to: :local_delivery_complete
+    end
+    event :complete_DC_stock do
+      transition from: [:before_ship, :local_delivery, :local_delivery_complete, :partially_complete_DC_stock], to: :local_delivery_complete
+    end
     event :start_oversea_delivery do
-      transition from: [:before_ship, :local_delivery, :local_delivery_complete], to: :overseas_delivery
+      transition from: [:before_ship, :local_delivery, :local_delivery_complete, :partially_complete_DC_stock, :complete_DC_stock], to: :overseas_delivery
     end
     event :complete_oversea_delivery do
-      transition from: [:before_ship, :local_delivery, :local_delivery_complete, :overseas_delivery], to: :customs
+      transition from: [:before_ship, :local_delivery, :local_delivery_complete, :partially_complete_DC_stock, :complete_DC_stock, :overseas_delivery], to: :customs
     end
     event :start_domestic_delivery do
-      transition from: [:before_ship, :local_delivery, :local_delivery_complete, :overseas_delivery, :customs], to: :domestic_delivery
+      transition from: [:before_ship, :local_delivery, :local_delivery_complete, :partially_complete_DC_stock, :complete_DC_stock, :overseas_delivery, :customs], to: :domestic_delivery
     end
     event :complete_domestic_delivery do
-      transition from: [:before_ship, :local_delivery, :local_delivery_complete, :overseas_delivery, :customs, :domestic_delivery], to: :delivered
-    end
-    event :backward_previous_after_shipped_state do
-      transition  :delivered => :domestic_delivery,
-                  :domestic_delivery => :customs,
-                  :customs => :overseas_delivery,
-                  :overseas_delivery => :local_delivery_complete,
-                  :local_delivery_complete => :local_delivery,
-                  :local_delivery => :before_ship
+      transition from: [:before_ship, :local_delivery, :local_delivery_complete, :partially_complete_DC_stock, :complete_DC_stock, :overseas_delivery, :customs, :domestic_delivery], to: :delivered
     end
   end   #state_machine
 

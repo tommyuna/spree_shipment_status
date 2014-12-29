@@ -3,7 +3,7 @@ ko:
     after_shipped_state: 상세 배송상태
     after_shipped_states:
       before_ship: 미국셀러가 미국물류센터로 배송전
-      local_delivery: 미국셀러가 미국물류센터로 배송 시작
+      local_delivery: 미국물류센터에 도착
       local_delivery_complete: 미국물류센터에 도착
       DC_partially_stocked: 미국물류센터에 도착후 한국배송준비중
       DC_stocked: 다음 한국행 비행기 탑니다

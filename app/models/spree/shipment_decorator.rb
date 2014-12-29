@@ -21,10 +21,10 @@ Spree::Shipment.class_eval do
       transition from: [:before_ship, :local_delivery], to: :local_delivery_complete
     end
     event :partially_complete_DC_stock do
-      transition from: [:before_ship, :local_delivery, :local_delivery_complete], to: :local_delivery_complete
+      transition from: [:before_ship, :local_delivery, :local_delivery_complete], to: :DC_partially_stocked
     end
     event :complete_DC_stock do
-      transition from: [:before_ship, :local_delivery, :local_delivery_complete, :partially_complete_DC_stock], to: :local_delivery_complete
+      transition from: [:before_ship, :local_delivery, :local_delivery_complete, :partially_complete_DC_stock], to: :DC_partially_stocked
     end
     event :start_oversea_delivery do
       transition from: [:before_ship, :local_delivery, :local_delivery_complete, :partially_complete_DC_stock, :complete_DC_stock], to: :overseas_delivery

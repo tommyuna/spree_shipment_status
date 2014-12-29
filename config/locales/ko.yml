@@ -2,15 +2,15 @@ ko:
   spree:
     after_shipped_state: 상세 배송상태
     after_shipped_states:
-      before_ship: 미국내 배송전
-      local_delivery: 미국창고 도착
-      local_delivery_complete: 미국창고 도착 및 등록 완료
-      DC_partially_stocked: 미국내 배송센터 부분입고처리
-      DC_stocked: 미국내 배송센터 입고처리완료
-      overseas_delivery: 국제항공 배송중
-      customs: 국제항공 배송완료 및 통관중
-      domestic_delivery: 국내택배 배송중
-      delivered: 국내택배 배송완료
+      before_ship: 미국셀러가 미국물류센터로 배송전
+      local_delivery: 미국셀러가 미국물류센터로 배송 시작
+      local_delivery_complete: 미국물류센터에 도착
+      DC_partially_stocked: 미국물류센터에 일부 도착
+      DC_stocked: 다음 한국행 비행기 탑니다
+      overseas_delivery: 한국행 비행기 탔습니다
+      customs: 인천 도착 및 세관통관중
+      domestic_delivery: 우체국택배 배송중
+      delivered: 우체국택배 배송완료
       canceled: 주문 취소
       returned: 상품 반품
     order_place_state:

@@ -8,15 +8,14 @@ namespace :shipping_update do
   def send_notify_email subject, body
     #Spree::NotifyMailer.notify_email(subject, body).deliver
   end
-  desc "shipping status update from amazon web-page"
-  task amazon_web_scraping: :environment do
+  desc "start shipping from amazon web-page"
+  task amazon_shipping_start: :environment do
     begin
-      ship_log "start amazon_web_scraping"
+      ship_log "start amazon_shipping_start"
       scraper = Spree::AmazonScraper.new
       raise "Login failed!" unless scraper.login
       Spree::Shipment.
         where(state: ['pending', 'ready']).
-        where.not(:state => 'canceled').
         where.not(json_store_order_id: nil).
         where('created_at >= ?', DateTime.new(2014,12,6)).
         find_each do |shipment|
@@ -71,6 +70,60 @@ namespace :shipping_update do
           rescue Exception => e
             ship_log "failed!!! shipmentid[#{shipment.id}]"
             ship_log "failed!!![#{e}]"
+          end
+        end
+      end
+    rescue Exception => e
+      ship_log "error occured: #{$!}"
+      ship_log e.backtrace
+      send_error_email e
+    end
+  end
+  desc "shipping status update from amazon web-page"
+  task amazon_shipping_update: :environment do
+    begin
+      ship_log "start amazon_shipping_update"
+      scraper = Spree::AmazonScraper.new
+      raise "Login failed!" unless scraper.login
+      Spree::Shipment.
+        where(:state => 'shipped').
+        where.not(json_store_order_id: nil).
+        where('created_at >= ?', DateTime.new(2014,12,6)).
+        where(:after_shipped_state => 'local_delivery').
+        find_each do |shipment|
+
+        ship_log "shipment.id:#{shipment.id}"
+        ship_log "shipment store_order_id#{shipment.json_store_order_id}"
+        if (1.second.ago - shipment.created_at) > 5.days
+          send_notify_email "check shipment status","orderid: #{shipment.order.number} / created_at:#{shipment.created_at}"
+        end
+        store_order_id = shipment.json_store_order_id
+        store_order_id.each do |store, order_ids|
+          next if store != 'amazon'
+          delivered_count = 0
+          order_id_count = order_ids.count
+          order_ids.each do |order_id|
+            ship_log "store:#{store}, order_id:#{order_id}"
+            addr = "#{scraper.addresses['order_status']}#{order_id}"
+            ship_log "addr:#{addr}"
+            order_status_page = scraper.get_html_doc addr
+            raise "order status page not found! store_order_id:#{shipment.id}" if order_status_page == nil
+            us_tracking_ids = []
+            shipment_divs = scraper.get_multiple_text(order_status_page, scraper.selectors['shipping_div'])
+            ship_log "shipment_divs:#{shipment_divs.count}"
+            states = []
+            shipment_divs.each do |page|
+              order_status = page.at_css(scraper.selectors['shipping_status']).text.strip
+              raise "couldn't get order status in amazon! store_order_id:#{id}" if order_status.nil?
+              ship_log "order_status:[#{order_status}]"
+              states.push order_status
+            end
+            state_array = ['Delivered',
+                           'Delivered today']
+            delivered_count += 1 if states.all? {|state| state_array.include? state}
+          end
+          if order_id_count != 0 and delivered_count == order_id_count
+            shipment.complete_local_delivery
           end
         end
       end

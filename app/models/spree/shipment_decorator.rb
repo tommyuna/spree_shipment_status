@@ -24,19 +24,19 @@ Spree::Shipment.class_eval do
       transition from: [:before_ship, :local_delivery, :local_delivery_complete], to: :DC_partially_stocked
     end
     event :complete_DC_stock do
-      transition from: [:before_ship, :local_delivery, :local_delivery_complete, :partially_complete_DC_stock], to: :DC_stocked
+      transition from: [:before_ship, :local_delivery, :local_delivery_complete, :DC_partially_stocked], to: :DC_stocked
     end
     event :start_oversea_delivery do
-      transition from: [:before_ship, :local_delivery, :local_delivery_complete, :partially_complete_DC_stock, :complete_DC_stock], to: :overseas_delivery
+      transition from: [:before_ship, :local_delivery, :local_delivery_complete, :DC_partially_stocked, :DC_stocked], to: :overseas_delivery
     end
     event :complete_oversea_delivery do
-      transition from: [:before_ship, :local_delivery, :local_delivery_complete, :partially_complete_DC_stock, :complete_DC_stock, :overseas_delivery], to: :customs
+      transition from: [:before_ship, :local_delivery, :local_delivery_complete, :DC_partially_stocked, :DC_stocked, :overseas_delivery], to: :customs
     end
     event :start_domestic_delivery do
-      transition from: [:before_ship, :local_delivery, :local_delivery_complete, :partially_complete_DC_stock, :complete_DC_stock, :overseas_delivery, :customs], to: :domestic_delivery
+      transition from: [:before_ship, :local_delivery, :local_delivery_complete, :DC_partially_stocked, :DC_stocked, :overseas_delivery, :customs], to: :domestic_delivery
     end
     event :complete_domestic_delivery do
-      transition from: [:before_ship, :local_delivery, :local_delivery_complete, :partially_complete_DC_stock, :complete_DC_stock, :overseas_delivery, :customs, :domestic_delivery], to: :delivered
+      transition from: [:before_ship, :local_delivery, :local_delivery_complete, :DC_partially_stocked, :DC_stocked, :overseas_delivery, :customs, :domestic_delivery], to: :delivered
     end
   end   #state_machine
 
@@ -123,11 +123,14 @@ Spree::Shipment.class_eval do
   end
   def push_us_tracking_id store, order_id, us_tracking_ids
     return if store.nil? or order_id.nil? or us_tracking_ids.nil?
+    us_tracking_id_array = []
+    us_tracking_id_array.push us_tracking_ids
+    us_tracking_id_array.flatten!
     us_tracking_id = self.json_us_tracking_id
     us_tracking_id = {} if us_tracking_id.nil?
     us_tracking_id[store] = {} if us_tracking_id[store].nil?
     us_tracking_id[store][order_id] = [] if us_tracking_id[store][order_id].nil?
-    us_tracking_id[store][order_id] = us_tracking_ids
+    us_tracking_id[store][order_id] = us_tracking_id_array
     self.update_columns(:json_us_tracking_id => us_tracking_id)
   end
   def get_store_urls

@@ -72,7 +72,7 @@ module Spree
       end
       rtn["privateno"] = "N/A"
       rtn["listpass"] = "1"
-      rtn["detailtype"] = "1"
+      rtn["detailtype"] = "0"
       rtn["package"] = "1"
       rtn["package2"] = "1"
       rtn["isinvoice"] = "1"

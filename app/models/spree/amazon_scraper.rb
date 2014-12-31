@@ -17,8 +17,8 @@ module Spree
       @retry_cnt = 0
       begin
         page = @agent.get 'https://www.amazon.com'
-        page = page.link_with(:text => /Sign in/)
-        page = @agent.click page
+        link = page.link_with(:text => /SignIn/)
+        page = @agent.click link
         page = page.form_with(:name => 'signIn') do |form|
           form.email = @login_info['userid']
           form.password = @login_info['password']

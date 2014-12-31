@@ -48,6 +48,7 @@ namespace :shipping_update do
               state_array = ['Shipped',
                              'Delivered',
                              'Delivered today',
+                             'Out for delivery',
                              'In transit',
                              'Arriving today',
                              'Arriving tomorrow']

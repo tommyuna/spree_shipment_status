@@ -164,7 +164,10 @@ namespace :shipping_update do
         delivered_count = 0
         tracking_id_list.each do |tracking_id|
           ship_log "#{tracking_id}"
-          next if tracking_id == 'N/A'
+          if tracking_id == 'N/A'
+            delivered_count += 1
+            next
+          end
           status = scraper.get_status(tracking_id)
           next if status.nil? or status.text.nil?
           ship_log "#{tracking_id}:#{status.text}"

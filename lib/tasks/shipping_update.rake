@@ -50,6 +50,7 @@ namespace :shipping_update do
                              'Delivered today',
                              'Out for delivery',
                              'In transit',
+                             'On the way',
                              'Arriving today',
                              'Arriving tomorrow']
               next unless state_array.include? order_status

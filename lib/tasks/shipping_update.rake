@@ -188,7 +188,7 @@ namespace :shipping_update do
     begin
       api = Spree::The82Api.new
       Spree::Shipment.
-        where(after_shipped_state: ['local_delivery', 'local_delivery_complete', 'overseas_delivery', 'customs', 'domestic_delivery']).
+        where(after_shipped_state: ['local_delivery', 'local_delivery_complete', 'DC_partially_stocked', 'DC_stocked', 'overseas_delivery', 'customs', 'domestic_delivery']).
         where.not(:state => 'canceled').
         where('created_at >= ?', DateTime.new(2014,12,6)).
         find_each do |shipment|

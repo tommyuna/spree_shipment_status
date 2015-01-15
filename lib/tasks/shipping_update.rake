@@ -41,6 +41,7 @@ namespace :shipping_update do
             us_tracking_ids = []
             shipment_divs = scraper.get_multiple_text(order_status_page, scraper.selectors['shipping_div'])
             ship_log "shipment_divs:#{shipment_divs.count}"
+            raise "shipment_divs doesn't exist:#{shipment.id}" if shipment_divs.count == 0
             shipment_divs.each do |page|
               order_status = page.at_css(scraper.selectors['shipping_status']).text.strip
               raise "couldn't get order status in amazon! store_order_id:#{id}" if order_status.nil?

@@ -13,9 +13,10 @@ module Spree
       @selectors = get_config 'email.gmail.selector'
     end
 
-    def login id, password
+    def login
       begin
-        @imap.login id, password
+        return nil if @login_info['userid'].nil? or @login_info['password'].nil?
+        @imap.login @login_info['userid'], @login_info['password']
         @imap.select('INBOX')
         true
       rescue Net::IMAP::NoResponseError

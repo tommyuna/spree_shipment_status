@@ -98,6 +98,48 @@ namespace :shipping_update do
         ship_log "shipment.id:#{shipment.id}"
         ship_log "shipment store_order_id#{shipment.json_store_order_id}"
         if (1.second.ago - shipment.created_at) > 5.days
+          send_notify_email "check shipment status", "orderid: #{shipment.order.number} / created_at:#{shipment.created_at}"
+        end
+        unless shipment.after_shipped_state == 'before_ship'
+          shipment.check_ship
+        end
+        store_order_id = shipment.json_store_order_id
+        store_order_id.each do |store, order_ids|
+          next if store != 'gap' and store != 'bananarepublic'
+          order_ids.each do |order_id|
+            ship_log "store:#{store}, order_id:#{order_id}"
+            order_status_page = scraper.get_order_page order_id
+            raise "order status page not found! store_order_id:#{shipment.id}" if order_status_page == nil
+            status = scraper.get_single_text(order_status_page, scraper.selectors['order_status'])
+            next if status.nil? or "Shipped" != status.text
+            ship_log "status:#{status.text}"
+            us_tracking_ids = []
+            shipment_status_page = scraper.get_shipment_page order_id
+            shipment_divs = scraper.get_multiple_text(shipment_status_page, scraper.selectors['shipping_div'])
+            shipment_divs.each do |page|
+              us_tracking_id = scraper.get_single_text(page, scraper.selectors['us_tracking_id'])
+              raise "couldn't get tracking id from amazon order id#{order_id}" if us_tracking_id.nil?
+              ship_log "us_tracking_id[#{us_tracking_id.text.strip}]"
+              us_tracking_ids.push us_tracking_id.text.strip
+            end
+            shipment.push_us_tracking_id store, order_id, us_tracking_ids
+          end
+        end
+        if shipment.all_shipped?
+          begin
+            ship_log "shipped[#{shipment.id}]"
+            shipment.complete_ship
+            shipment.shipment_registration
+            shipment.save
+          rescue Exception => e
+            ship_log "failed!!![#{shipment.id}]"
+            ship_log "failed!!![#{e}]"
+          end
+        end
+      end
+    rescue Exception => e
+      ship_log "error occured: #{$!}"
+      ship_log e.backtrace
       send_error_email e
     end
   end
@@ -220,6 +262,62 @@ namespace :shipping_update do
   end
   desc "shipping status update from foot-locker shipping confirm email"
   task foot_locker_scraping: :environment do
+    begin
+      ship_log "start gap_shipping_scraping"
+      scraper = Spree::GapScraper.new
+      Spree::Shipment.
+        where(state: ['pending', 'ready']).
+        where.not(:state => 'canceled').
+        where.not(json_store_order_id: nil).
+        where('created_at >= ?', DateTime.new(2014,12,6)).
+        find_each do |shipment|
+        ship_log "shipment.id:#{shipment.id}"
+        ship_log "shipment store_order_id#{shipment.json_store_order_id}"
+        if (1.second.ago - shipment.created_at) > 5.days
+          send_notify_email "check shipment status", "orderid: #{shipment.order.number} / created_at:#{shipment.created_at}"
+        end
+        unless shipment.after_shipped_state == 'before_ship'
+          shipment.check_ship
+        end
+        store_order_id = shipment.json_store_order_id
+        store_order_id.each do |store, order_ids|
+          next if store != 'gap' and store != 'bananarepublic'
+          order_ids.each do |order_id|
+            ship_log "store:#{store}, order_id:#{order_id}"
+            order_status_page = scraper.get_order_page order_id
+            raise "order status page not found! store_order_id:#{shipment.id}" if order_status_page == nil
+            status = scraper.get_single_text(order_status_page, scraper.selectors['order_status'])
+            next if status.nil? or "Shipped" != status.text
+            ship_log "status:#{status.text}"
+            us_tracking_ids = []
+            shipment_status_page = scraper.get_shipment_page order_id
+            shipment_divs = scraper.get_multiple_text(shipment_status_page, scraper.selectors['shipping_div'])
+            shipment_divs.each do |page|
+              us_tracking_id = scraper.get_single_text(page, scraper.selectors['us_tracking_id'])
+              raise "couldn't get tracking id from amazon order id#{order_id}" if us_tracking_id.nil?
+              ship_log "us_tracking_id[#{us_tracking_id.text.strip}]"
+              us_tracking_ids.push us_tracking_id.text.strip
+            end
+            shipment.push_us_tracking_id store, order_id, us_tracking_ids
+          end
+        end
+        if shipment.all_shipped?
+          begin
+            ship_log "shipped[#{shipment.id}]"
+            shipment.complete_ship
+            shipment.shipment_registration
+            shipment.save
+          rescue Exception => e
+            ship_log "failed!!![#{shipment.id}]"
+            ship_log "failed!!![#{e}]"
+          end
+        end
+      end
+    rescue Exception => e
+      ship_log "error occured: #{$!}"
+      ship_log e.backtrace
+      send_error_email e
+    end
   end
   desc "test"
   task tmp_test: :environment do

@@ -34,6 +34,7 @@ namespace :shipping_update do
           next if store != 'amazon'
           order_ids.each do |order_id|
             ship_log "store:#{store}, order_id:#{order_id}"
+            next if order_id == "FAILED"
             addr = "#{scraper.addresses['order_status']}#{order_id}"
             ship_log "addr:#{addr}"
             order_status_page = scraper.get_html_doc addr

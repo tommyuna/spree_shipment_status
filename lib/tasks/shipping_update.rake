@@ -293,7 +293,7 @@ namespace :shipping_update do
             doc = scraper.get_html_doc uids.first
             tracking_id = scraper.get_single_text(doc, scraper.selectors['foot_locker_shipment_confirm_tracking_id'])
             raise "not found tracking id footlocker:#{order_id}" if tracking_id.nil?
-            shipment.push_us_tracking_id store, order_id, tracking_id
+            shipment.push_us_tracking_id store, order_id, tracking_id.text.strip
           end
         end
         if shipment.all_shipped?
@@ -316,5 +316,17 @@ namespace :shipping_update do
   end
   desc "test"
   task tmp_test: :environment do
+      scraper = Spree::GmailScraper.new
+      raise "Login failed! #{scraper.login_info['userid']}/#{scraper.login_info['password']}" unless scraper.login
+      query = ['FROM', scraper.addresses['foot_locker_shipment_confirm'],
+               #'SINCE', scraper.get_imap_date(-30),
+               'SUBJECT', scraper.subjects['foot_locker_shipment_confirm'],
+               'BODY', '12226294']
+      uids = scraper.get_uid_list(query)
+      next if uids.empty?
+      doc = scraper.get_html_doc uids.first
+      tracking_id = scraper.get_single_text(doc, scraper.selectors['foot_locker_shipment_confirm_tracking_id'])
+      raise "not found tracking id footlocker:#{order_id}" if tracking_id.nil?
+      puts "#{tracking_id.text.strip}"
   end
 end

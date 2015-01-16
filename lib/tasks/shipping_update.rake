@@ -260,191 +260,73 @@ namespace :shipping_update do
       send_error_email e
     end
   end
-  desc "shipping status update from amazon shipping confirm email"
-  task amz_shipping_scraping: :environment do
+  desc "shipping status update from foot-locker shipping confirm email"
+  task foot_locker_scraping: :environment do
     begin
-    ship_log "start amz_shipping_scraping"
-    scraper = Spree::GmailScraper.new
-    raise "amz_shipping_scraping: Login failed! #{scraper.login_info['userid']}/#{scraper.login_info['password']}" unless scraper.login(scraper.login_info['userid'], scraper.login_info['password'])
-
-    #amazon shipping confirm
-    query = ['FROM', scraper.addresses['amz_shipping_confirm'],
-             'SINCE', scraper.get_imap_date(-30)]
-    last_processed_shipment_email = Spree::Shipment.where.not(shipment_confirm_email_uid: nil).order('shipment_confirm_email_uid DESC').first.shipment_confirm_email_uid
-    last_processed_shipment_email = 0 if last_processed_shipment_email == nil
-    uids = scraper.get_uid_list(query).find_all { |uid| uid > last_processed_shipment_email - 30 }
-    ship_log "last_processed_shipment_email[#{last_processed_shipment_email}]"
-    uids.each do |uid|
-      ship_log "#{uid}:-------------------------------------------------"
-      doc = scraper.get_html_doc uid
-      next if doc == nil
-      store_order_id = scraper.get_multiple_text(doc, scraper.selectors['amz_shipping_confirm'])
-      raise "amz_shipping_scraping: not found order id from amazon shipping email" if store_order_id.empty?
-      store_order_id.each do |order_id|
-        @amazon_id = nil
-        if order_id.text =~ /\d{3}-\d{7}-\d{7}*/
-          @amazon_id = order_id.text.slice(0, 19)
-        else
-          next
+      ship_log "start foot_locker_scraping"
+      scraper = Spree::GmailScraper.new
+      raise "Login failed! #{scraper.login_info['userid']}/#{scraper.login_info['password']}" unless scraper.login
+      Spree::Shipment.
+        where(state: ['pending', 'ready']).
+        where.not(:state => 'canceled').
+        where.not(json_store_order_id: nil).
+        where('created_at >= ?', DateTime.new(2014,12,6)).
+        find_each do |shipment|
+        ship_log "shipment.id:#{shipment.id}"
+        ship_log "shipment store_order_id#{shipment.json_store_order_id}"
+        if (1.second.ago - shipment.created_at) > 5.days
+          send_notify_email "check shipment status", "orderid: #{shipment.order.number} / created_at:#{shipment.created_at}"
         end
-        ship_log "amazon order id[#{@amazon_id}]"
-        shipments = Spree::Shipment.where(store: 'amazon').where(store_order_id: @amazon_id)
-        shipments.each { |shipment|
-          unless shipment.state == 'shipped' or shipment.state == 'canceled'
-            ship_log "shipment:[#{shipment.id}] is updated"
-            shipment.shipment_confirm_email_uid = uid
+        unless shipment.after_shipped_state == 'before_ship'
+          shipment.check_ship
+        end
+        store_order_id = shipment.json_store_order_id
+        store_order_id.each do |store, order_ids|
+          next if store != 'footlocker'
+          order_ids.each do |order_id|
+            query = ['FROM', scraper.addresses['foot_locker_shipment_confirm'],
+                     'SINCE', scraper.get_imap_date(-30),
+                     'SUBJECT', scraper.subjects['foot_locker_shipment_confirm'],
+                     'BODY', order_id]
+            uids = scraper.get_uid_list(query)
+            next if uids.empty?
+            doc = scraper.get_html_doc uids.first
+            tracking_id = scraper.get_single_text(doc, scraper.selectors['foot_locker_shipment_confirm_tracking_id'])
+            raise "not found tracking id footlocker:#{order_id}" if tracking_id.nil?
+            shipment.push_us_tracking_id store, order_id, tracking_id.text.strip
+          end
+        end
+        if shipment.all_shipped?
+          begin
+            ship_log "shipped[#{shipment.id}]"
             shipment.complete_ship
+            shipment.shipment_registration
             shipment.save
-          end
-        }
-      end
-    end
-    rescue Exception => e
-      Rails.logger.error "error occured: #{$!}"
-      Rails.logger.error e.backtrace
-      send_error_email e
-    end
-  end
-
-  desc "shipping status update from package tracker email"
-  task package_tracker_scraping: :environment do
-    begin
-    ship_log "start package_tracker_scraping"
-    scraper = Spree::GmailScraper.new
-    raise "Login failed!" unless scraper.login(scraper.login_info['userid'], scraper.login_info['password'])
-
-    # Packagetrackr email
-    query = ['FROM', scraper.addresses['package_tracker_confirm'],
-             'SINCE', scraper.get_imap_date(-30)]
-    last_processed_shipment_email = Spree::Shipment.where(after_shipped_state: 'local_delivery').order('shipment_confirm_email_uid DESC').first.shipment_confirm_email_uid
-    last_processed_shipment_email = 0 if last_processed_shipment_email == nil
-    uids = scraper.get_uid_list(query).find_all { |uid| uid > last_processed_shipment_email }
-    return if uids == nil
-    uids.each do |uid|
-      doc = scraper.get_html_doc uid
-      next if doc == nil
-      order_id = scraper.get_single_text(doc, scraper.selectors['package_tracker_confirm']).text
-      raise "not found order id from amazon shipping email" if order_id == nil
-      shipments = Spree::Shipment.where(store: 'amazon').where(number: order_id) unless order_id.length == 0
-
-      #below test causes too many errors
-      #raise "not found shipment" if shipment == nil
-      next if shipments == nil
-      shipments.each { |shipment|
-        shipment.shipment_confirm_email_uid = uid
-        shipment.complete_local_delivery
-        shipment.save
-      }
-    end
-    rescue Exception => e
-      Rails.logger.error "error occured: #{$!}"
-      Rails.logger.error e.backtrace
-      send_error_email e
-    end
-  end
-
-  desc "shipping status update from ohmyzip web-page"
-  task ohmyzip_scraping: :environment do
-    begin
-      #scraping from ohmyzip
-      scraper = Spree::OhmyzipScraper.new
-      ship_log "start ohmyzip_scraping #{scraper.login_info['userid']}/#{scraper.login_info['password']}"
-      raise "Login failed!" unless scraper.login(scraper.login_info['userid'], scraper.login_info['password'])
-      ship_log "ohmyzip login!"
-      order_list_page = scraper.get_html_doc scraper.addresses['order_list']
-      raise "order list page not found" if order_list_page == nil
-      scraper.get_multiple_text(order_list_page, scraper.selectors['order_list_row']).each do |row|
-        shipment_id_doc = scraper.get_single_text(row, scraper.selectors['order_list_shipment_id'])
-        tracking_id_doc = scraper.get_single_text(row, scraper.selectors['order_list_tracking_id'])
-        unless shipment_id_doc == nil
-          @shipment_id = shipment_id_doc.text
-          @tracking_id = tracking_id_doc.text unless tracking_id_doc == nil
-          ship_log "shipment id:#{@shipment_id}/ tracking id:#{@tracking_id}"
-          order_detail_doc = scraper.get_html_doc(scraper.addresses['order_detail'] + @shipment_id)
-          raise "order detail page not found" if order_detail_doc == nil
-          store_doc = scraper.get_single_text(order_detail_doc, scraper.selectors['order_detail_store'])
-          store_order_id_doc = scraper.get_single_text(order_detail_doc, scraper.selectors['order_detail_store_order_id'])
-          if store_doc == nil or store_order_id_doc == nil
-            raise "scraping error order detail#{scraper.addresses['order_detail'] + @shipment_id}"
-          else
-            store = store_doc.text
-            store_order_id = store_order_id_doc.text.split(',')
-            ship_log "#{store}/#{store_order_id}"
-          end
-          case store
-          when 'www.amazon.com'
-            store = 'amazon'
-          when 'www.ssense.com'
-            store = 'ssense'
-          when 'www.gap.com'
-            store = 'gap'
-          when 'www.bananarepublic.gap.com'
-            store = 'bananarepublic'
-          end
-          ship_log "store: #{store}"
-          shipments = Spree::Shipment.where(store: store).where('store_order_id in (?)', store_order_id)
-
-          #raise "shipments not found" if shipments == nil
-          shipments.each do |shipment|
-            ship_log "shipment id: #{shipment.id}"
-            ship_log "ohmyzip id: #{@shipment_id}"
-            ship_log "tracking id: #{@tracking_id}"
-            unless shipment.after_shipped_state == 'overseas_delivery' or shipment.state == 'canceled'
-              shipment.start_oversea_delivery
-              shipment.ohmyzip_id = @shipment_id
-              shipment.tracking_id = @tracking_id
-              shipment.save
-            end
+          rescue Exception => e
+            ship_log "failed!!![#{shipment.id}]"
+            ship_log "failed!!![#{e}]"
           end
         end
       end
     rescue Exception => e
-      Rails.logger.error "error occured: #{$!}"
-      Rails.logger.error e.backtrace
-      send_error_email e
-    end
-  end
-
-  desc "shipping status update from warpex tracker page"
-  task warpex_scraping: :environment do
-    begin
-      ship_log "start warpex_scraping"
-      scraper = Spree::WarpexScraper.new
-      Spree::Shipment.where.not(tracking_id: nil).where.not(after_shipped_state: [:delivered, :canceled]).each do |shipment|
-        ship_log "shipment #{shipment.id}"
-        next if shipment.state == 'canceled'
-        tracking_page = scraper.addresses['tracking_page'] + shipment.tracking_id
-        ship_log "tracking_page #{tracking_page}"
-        doc = scraper.get_html_doc tracking_page
-        raise "tracking_page not found" if doc == nil
-        img = scraper.get_single_text doc, scraper.selectors['status']
-        ship_log "img:#{img['src']}"
-        case img['src']
-        when scraper.status['step3']
-          shipment.complete_oversea_delivery
-        when scraper.status['step4']
-          shipment.start_domestic_delivery
-        when scraper.status['step5']
-          shipment.complete_domestic_delivery
-        else
-          if img['src'] != scraper.status['step1']  and img['src'] != scraper.status['step2'] and img['src'] != "/images/tracking/track_step.gif"
-            raise "scraping error:image source#{img['src']}"
-          end
-        end
-        shipment.save
-        ship_log "shipment:#{shipment.after_shipped_state}"
-      end
-    rescue Exception => e
-      Rails.logger.error "error occured: #{$!}"
-      Rails.logger.error e.backtrace
+      ship_log "error occured: #{$!}"
+      ship_log e.backtrace
       send_error_email e
     end
   end
   desc "test"
   task tmp_test: :environment do
-    shipment = Spree::Shipment.find(3692)
-    api = Spree::The82Api.new
-    page = api.post_shipment_registration shipment
-    puts page
+      scraper = Spree::GmailScraper.new
+      raise "Login failed! #{scraper.login_info['userid']}/#{scraper.login_info['password']}" unless scraper.login
+      query = ['FROM', scraper.addresses['foot_locker_shipment_confirm'],
+               #'SINCE', scraper.get_imap_date(-30),
+               'SUBJECT', scraper.subjects['foot_locker_shipment_confirm'],
+               'BODY', '12226294']
+      uids = scraper.get_uid_list(query)
+      next if uids.empty?
+      doc = scraper.get_html_doc uids.first
+      tracking_id = scraper.get_single_text(doc, scraper.selectors['foot_locker_shipment_confirm_tracking_id'])
+      raise "not found tracking id footlocker:#{order_id}" if tracking_id.nil?
+      puts "#{tracking_id.text.strip}"
   end
 end

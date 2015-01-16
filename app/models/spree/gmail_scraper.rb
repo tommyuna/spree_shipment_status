@@ -4,6 +4,7 @@ require 'date'
 
 module Spree
   class GmailScraper < Spree::ScraperBase
+    attr_reader :subjects
     def initialize
       super
       @imap = Net::IMAP.new('imap.gmail.com', 993, true)
@@ -11,11 +12,13 @@ module Spree
       @login_info['password'] = ENV['CONFIRM_EMAIL_PASSWORD']
       @addresses = get_config 'email.gmail.address'
       @selectors = get_config 'email.gmail.selector'
+      @subjects  = get_config 'email.gmail.subject'
     end
 
-    def login id, password
+    def login
       begin
-        @imap.login id, password
+        return nil if @login_info['userid'].nil? or @login_info['password'].nil?
+        @imap.login @login_info['userid'], @login_info['password']
         @imap.select('INBOX')
         true
       rescue Net::IMAP::NoResponseError
@@ -28,7 +31,7 @@ module Spree
       if mail == nil
         return nil
       else
-        return Nokogiri::HTML(mail.body.decoded)
+        return Nokogiri::HTML.parse(mail.body.decoded)
       end
     end
 

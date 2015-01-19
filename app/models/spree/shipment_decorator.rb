@@ -45,11 +45,7 @@ Spree::Shipment.class_eval do
     if self.state != 'shipped' and self.state != 'canceled'
       self.order.payments.each do |p|
         Rails.logger.info "shipping-update payment[#{p.id}] state[#{p.state}]"
-        begin
-          p.capture! if p.state == 'pending'
-        rescue Exception => e
-          Rails.logger.info "shipping-update capture failed![#{e}]"
-        end
+        p.capture! if p.state == 'pending'
       end
       self.reload
       Rails.logger.info "shipping-update state #{self.state}"
@@ -71,6 +67,7 @@ Spree::Shipment.class_eval do
     Rails.logger.info "shipping-update:#{page.to_json}"
     forwarding_id = page['warehouseordno']
     kr_tracking_id = page['transnum']
+    raise "shipment_registration failed!" if forwarding_id.nil? or kr_tracking_id.nil?
     self.update_columns(forwarding_id: forwarding_id)
     self.update_columns(json_kr_tracking_id: kr_tracking_id)
   end

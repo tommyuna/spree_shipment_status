@@ -67,15 +67,9 @@ namespace :shipping_update do
           shipment.save!
         end
         if shipment.all_shipped?
-          begin
-            ship_log "shipped[#{shipment.id}]"
-            shipment.complete_ship
-            shipment.shipment_registration
-            shipment.save
-          rescue Exception => e
-            ship_log "failed!!! shipmentid[#{shipment.id}]"
-            ship_log "failed!!![#{e}]"
-          end
+          ship_log "shipped[#{shipment.id}]"
+          shipment.complete_ship
+          shipment.shipment_registration
         end
       end
     rescue Exception => e
@@ -127,15 +121,9 @@ namespace :shipping_update do
           end
         end
         if shipment.all_shipped?
-          begin
-            ship_log "shipped[#{shipment.id}]"
-            shipment.complete_ship
-            shipment.shipment_registration
-            shipment.save
-          rescue Exception => e
-            ship_log "failed!!![#{shipment.id}]"
-            ship_log "failed!!![#{e}]"
-          end
+          ship_log "shipped[#{shipment.id}]"
+          shipment.complete_ship
+          shipment.shipment_registration
         end
       end
     rescue Exception => e
@@ -298,15 +286,9 @@ namespace :shipping_update do
           end
         end
         if shipment.all_shipped?
-          begin
-            ship_log "shipped[#{shipment.id}]"
-            shipment.complete_ship
-            shipment.shipment_registration
-            shipment.save
-          rescue Exception => e
-            ship_log "failed!!![#{shipment.id}]"
-            ship_log "failed!!![#{e}]"
-          end
+          ship_log "shipped[#{shipment.id}]"
+          shipment.complete_ship
+          shipment.shipment_registration
         end
       end
     rescue Exception => e

@@ -12,8 +12,7 @@ Spree::Shipment.class_eval do
   state_machine   :after_shipped_state,   :initial  => :before_ship do
 
     before_transition :from => :before_ship, :do => :check_ship
-    #after_transition :from => :before_ship, :do => :shipment_registration
-    after_transition :on => :overseas_delivery, :do => :send_overseas_mail
+    after_transition :on => :start_oversea_delivery, :do => :send_overseas_mail
 
     event :complete_ship do
       transition from: :before_ship, to: :local_delivery
@@ -60,7 +59,6 @@ Spree::Shipment.class_eval do
     end
     true
   end
-
   def shipment_registration
     return if self.json_store_order_id.nil?
     api = Spree::The82Api.new
@@ -79,6 +77,9 @@ Spree::Shipment.class_eval do
     touch :shipped_at
     update_order_shipment_state
     self.complete_ship!
+  end
+  def send_overseas_mail
+    Spree::ShipmentMailer.overseas_shipped_email(self).deliver!
   end
 
   def all_shipped?
@@ -159,9 +160,6 @@ Spree::Shipment.class_eval do
     else
        return self.after_shipped_state
     end
-  end
-  def send_overseas_mail
-    Spree::ShipmentMailer.overseas_shipped_email(self).deliver!
   end
 
 end   #class_eval

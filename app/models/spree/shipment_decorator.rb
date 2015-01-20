@@ -13,6 +13,7 @@ Spree::Shipment.class_eval do
 
     before_transition :from => :before_ship, :do => :check_ship
     #after_transition :from => :before_ship, :do => :shipment_registration
+    after_transition :on => :overseas_delivery, :do => :send_overseas_mail
 
     event :complete_ship do
       transition from: :before_ship, to: :local_delivery
@@ -63,8 +64,8 @@ Spree::Shipment.class_eval do
   def shipment_registration
     return if self.json_store_order_id.nil?
     api = Spree::The82Api.new
-    page = api.post_shipment_registration self
     Rails.logger.info "shipping-update:#{page.to_json}"
+    page = api.post_shipment_registration self
     forwarding_id = page['warehouseordno']
     kr_tracking_id = page['transnum']
     raise "shipment_registration failed!" if forwarding_id.nil? or kr_tracking_id.nil?
@@ -158,6 +159,9 @@ Spree::Shipment.class_eval do
     else
        return self.after_shipped_state
     end
+  end
+  def send_overseas_mail
+    Spree::ShipmentMailer.overseas_shipped_email(self).deliver!
   end
 
 end   #class_eval

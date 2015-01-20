@@ -58,8 +58,13 @@ module Spree
       rtn["receiverennm"] = convert_korean_name(replace_comma(address.firstname))
       rtn["telno"] = "N/A"
       rtn["mobile"] = replace_comma(address.phone).delete(' ')
-      rtn["registno"] = "N/A"
-      rtn["pgno"] = "N/A"
+      if address.customs_no.present?
+        if address.customs_no[0] == "P"
+          rtn["pgno"] = address.customs_no
+        else
+          rtn["registno"] = address.customs_no
+        end
+      end
       rtn["memid"] = "N/A"
       rtn["tax"] = "com"
       rtn["zipcode"] = replace_comma(address.zipcode).delete(' ')

@@ -62,8 +62,8 @@ Spree::Shipment.class_eval do
   def shipment_registration
     return if self.json_store_order_id.nil?
     api = Spree::The82Api.new
-    Rails.logger.info "shipping-update:#{page.to_json}"
     page = api.post_shipment_registration self
+    Rails.logger.info "shipping-update:#{page.to_json}"
     forwarding_id = page['warehouseordno']
     kr_tracking_id = page['transnum']
     raise "shipment_registration failed!" if forwarding_id.nil? or kr_tracking_id.nil?

@@ -96,7 +96,7 @@ module Spree
         rtn["brand"] = replace_comma(prod.brand)
         rtn["prodnm"] = replace_comma(prod.name)
         rtn["produrl"] = "https://gosnapshop.com/products/#{prod.slug}"
-        rtn["prodimage"] = "https://gosnapshop.com#{prod.images.first.attachment.url("large")}"
+        rtn["prodimage"] = prod.images.first.attachment.url("large")
         properties = prod.product_properties.select {|pp| pp.property.name == 'Color'}
         unless properties.empty?
           rtn["prodcolor"] = replace_comma(properties.first.value)

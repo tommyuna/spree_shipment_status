@@ -90,7 +90,7 @@ Spree::Shipment.class_eval do
       if order_ids.first == "FAILED"
         failed_count += 1
       end
-      next unless ['gap','bananarepublic','amazon', 'footlocker'].include? store
+      next unless ['gap','bananarepublic','amazon'].include? store
       return false if self.json_us_tracking_id.nil? or self.json_us_tracking_id.empty?
       return false if self.json_us_tracking_id[store].nil? or self.json_us_tracking_id[store].empty?
       order_ids.each do |order_id|

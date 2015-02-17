@@ -113,6 +113,7 @@ Spree::Shipment.class_eval do
     store_order_id[store].push order_id
     store_order_id[store].flatten!
     store_order_id[store].uniq!
+    store_order_id[store].delete("FAILED") if store_order_id[store].count > 1
     store_order_id[store].each do |id|
       next if id == "FAILED"
       us_tracking_id[store][id] = [] if us_tracking_id[store][id].nil?

@@ -118,8 +118,8 @@ Spree::Shipment.class_eval do
       next if id == "FAILED"
       us_tracking_id[store][id] = [] if us_tracking_id[store][id].nil?
     end
-    self.update_columns(:json_store_order_id => store_order_id)
-    self.update_columns(:json_us_tracking_id => us_tracking_id)
+    self.update_attribute(:json_store_order_id, store_order_id)
+    self.update_attribute(:json_us_tracking_id, us_tracking_id)
   end
   def push_us_tracking_id store, order_id, us_tracking_ids
     return if store.nil? or order_id.nil? or us_tracking_ids.nil?
@@ -131,7 +131,7 @@ Spree::Shipment.class_eval do
     us_tracking_id[store] = {} if us_tracking_id[store].nil?
     us_tracking_id[store][order_id] = [] if us_tracking_id[store][order_id].nil?
     us_tracking_id[store][order_id] = us_tracking_id_array
-    self.update_columns(:json_us_tracking_id => us_tracking_id)
+    self.update_attribute(:json_us_tracking_id, us_tracking_id)
   end
   def get_store_urls
     return [] if self.store.nil?

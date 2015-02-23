@@ -13,7 +13,7 @@ ko:
       delivered: 우체국택배 배송완료
       canceled: 주문 취소
       returned: 상품 반품
-    order_place_state:
+    order_state_and_place:
       complete: 완료
       complete_failed: 완료(실패)
       canceled: 취소

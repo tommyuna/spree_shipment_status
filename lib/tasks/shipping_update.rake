@@ -20,7 +20,7 @@ namespace :shipping_update do
         where.not(json_store_order_id: nil).
         where('created_at >= ?', DateTime.new(2014,12,6)).
         find_each do |shipment|
-
+        next if shipment.order.state == 'canceled'
         ship_log "shipment.id:#{shipment.id}"
         ship_log "shipment store_order_id#{shipment.json_store_order_id}"
         if (1.second.ago - shipment.created_at) > 5.days
@@ -90,6 +90,7 @@ namespace :shipping_update do
         where.not(json_store_order_id: nil).
         where('created_at >= ?', DateTime.new(2014,12,6)).
         find_each do |shipment|
+        next if shipment.order.state == 'canceled'
         ship_log "shipment.id:#{shipment.id}"
         ship_log "shipment store_order_id#{shipment.json_store_order_id}"
         if (1.second.ago - shipment.created_at) > 5.days
@@ -261,6 +262,7 @@ namespace :shipping_update do
         where.not(json_store_order_id: nil).
         where('created_at >= ?', DateTime.new(2014,12,6)).
         find_each do |shipment|
+        next if shipment.order.state == 'canceled'
         ship_log "shipment.id:#{shipment.id}"
         ship_log "shipment store_order_id#{shipment.json_store_order_id}"
         if (1.second.ago - shipment.created_at) > 5.days

@@ -54,7 +54,8 @@ namespace :shipping_update do
                              'In transit',
                              'On the way',
                              'Arriving today',
-                             'Arriving tomorrow']
+                             'Arriving tomorrow',
+                             'Arriving tomorrow by 8pm']
               next unless state_array.include? order_status.text.strip
               us_tracking_id = scraper.get_tracking_id page
               if us_tracking_id.present?

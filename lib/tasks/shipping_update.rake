@@ -45,7 +45,7 @@ namespace :shipping_update do
             raise "shipment_divs doesn't exist:#{shipment.id}" if shipment_divs.count == 0
             shipment_divs.each do |page|
               order_status = page.at_css(scraper.selectors['shipping_status'])
-              raise "couldn't get order status in amazon! store_order_id:#{id}" if order_status.nil?
+              raise "couldn't get order status in amazon! store_order_id:#{order_id}" if order_status.nil?
               ship_log "order_status:[#{order_status.text.strip}]"
               state_array = ['Shipped',
                              'Delivered',

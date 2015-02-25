@@ -45,15 +45,14 @@ namespace :shipping_update do
             raise "shipment_divs doesn't exist:#{shipment.id}" if shipment_divs.count == 0
             shipment_divs.each do |page|
               order_status = page.at_css(scraper.selectors['shipping_status'])
+              order_status = page.at_css(scraper.selectors['shipping_status_2']) if order_status.nil?
               raise "couldn't get order status in amazon! store_order_id:#{order_id}" if order_status.nil?
               ship_log "order_status:[#{order_status.text.strip}]"
               state_array = ['Shipped',
-                             'Delivered',
-                             'Delivered today',
                              'Out for delivery',
                              'In transit',
                              'On the way']
-              next unless state_array.include? order_status.text.strip
+              next unless state_array.include? order_status.text.strip or order_status.text.strip.include? "Delivered"
               us_tracking_id = scraper.get_tracking_id page
               if us_tracking_id.present?
                 ship_log "us_tracking_id[#{us_tracking_id}]"

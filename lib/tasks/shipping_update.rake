@@ -6,7 +6,7 @@ namespace :shipping_update do
     Rails.logger.info "shipping-update:#{str}"
   end
   def send_notify_email subject, body
-    #Spree::NotifyMailer.notify_email(subject, body).deliver
+    Spree::NotifyMailer.notify_email(subject, body).deliver
   end
   desc "shipping status update from amazon web-page"
   task amazon_scraping: :environment do
@@ -196,12 +196,12 @@ namespace :shipping_update do
         if status.include? "OC" #출고완료
           shipment.start_oversea_delivery
         elsif status.include? "IC"
-          if status.all?{|st| st == "IC" } 
+          if status.all?{|st| st == "IC" }
             shipment.complete_DC_stock # 전체입고완료
           else
             shipment.partially_complete_DC_stock # 부분입고완료
           end
-        elsif status.all?{|st| st == "RC" } #고객수령완료
+        elsif (not status.empty?) and status.all?{|st| st == "RC" } #고객수령완료
           shipment.complete_domestic_delivery
         elsif status.any?{|st| st == "EI" } #오류입고
           ship_log "오류입고"

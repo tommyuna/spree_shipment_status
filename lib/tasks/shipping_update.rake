@@ -6,7 +6,7 @@ namespace :shipping_update do
     Rails.logger.info "shipping-update:#{str}"
   end
   def send_notify_email subject, body
-    Spree::NotifyMailer.notify_email(subject, body).deliver
+    #Spree::NotifyMailer.notify_email(subject, body).deliver
   end
   desc "shipping status update from amazon web-page"
   task amazon_scraping: :environment do

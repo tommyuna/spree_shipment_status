@@ -18,6 +18,7 @@ module Spree
       begin
         page = @agent.get 'https://www.amazon.com'
         link = page.link_with(:text => /SignIn/)
+        link = page.link_with(:text => /Sign in/) if link.nil?
         link = page.link_with(:text => /Sign In/) if link.nil?
         page = @agent.click link
         page = page.form_with(:name => 'signIn') do |form|

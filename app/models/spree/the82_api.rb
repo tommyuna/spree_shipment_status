@@ -151,7 +151,7 @@ module Spree
       if string.nil? or string.empty?
         "N/A"
       else
-        string.gsub(",", " ").gsub("'", " ").gsub("`", " ")
+        string.gsub(",", " ").gsub("'", " ").gsub("`", " ").gsub("\"","")
       end
     end
     def convert_the82_taxon taxon

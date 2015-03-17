@@ -103,8 +103,9 @@ module Spree
         else
           rtn["prodcolor"] = "N/A"
         end
-        unless var.size.nil?
-          rtn["prodsize"] = replace_comma(var.size)
+        size = var.option_values.find { |o| o.option_type.name.include? "size" }
+        unless size.nil?
+          rtn["prodsize"] = replace_comma(size.name)
         else
           rtn["prodsize"] = "N/A"
         end

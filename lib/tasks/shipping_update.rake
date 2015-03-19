@@ -15,6 +15,7 @@ namespace :shipping_update do
       scraper = Spree::AmazonScraper.new
       raise "Login failed!" unless scraper.login
       Spree::Shipment.
+        includes(:order)
         where(state: ['pending', 'ready']).
         where.not(:state => 'canceled').
         where.not(json_store_order_id: nil).

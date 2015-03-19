@@ -62,12 +62,11 @@ Spree::Shipment.class_eval do
   def shipment_registration
     return if self.json_store_order_id.nil?
     if order.completed_at > DateTime.new(2015,3,18,11,00).in_time_zone('Seoul')
-      #@theclass ||= Spree::TheClassApi.new
-      #res = @theclass.post_shipment_registration self
-      #Rails.logger.info "shipping-update:#{res}"
-      #forwarding_id = page['warehouseordno']
-      #kr_tracking_id = page['transnum']
-      return # skip theclass order
+      @theclass ||= Spree::TheClassApi.new
+      res = @theclass.post_shipment_registration self
+      Rails.logger.info "shipping-update:#{res}"
+      forwarding_id = page['warehouseordno']
+      kr_tracking_id = page['transnum']
     else
       @the82 ||= Spree::The82Api.new
       page = @the82.post_shipment_registration self
@@ -172,6 +171,7 @@ Spree::Shipment.class_eval do
        return self.after_shipped_state
     end
   end
+
   def check_and_ship
     if all_shipped?
       Rails.logger.info "shipping-update shipped:[#{id}]"

@@ -63,11 +63,7 @@ namespace :shipping_update do
           end
           shipment.save!
         end
-        if shipment.all_shipped?
-          ship_log "shipped[#{shipment.id}]"
-          shipment.complete_ship
-          shipment.shipment_registration
-        end
+        shipment.check_and_ship
       end
     rescue Exception => e
       ship_log "error occured: #{$!}"
@@ -118,11 +114,7 @@ namespace :shipping_update do
             shipment.push_us_tracking_id store, order_id, us_tracking_ids
           end
         end
-        if shipment.all_shipped?
-          ship_log "shipped[#{shipment.id}]"
-          shipment.complete_ship
-          shipment.shipment_registration
-        end
+        shipment.check_and_ship
       end
     rescue Exception => e
       ship_log "error occured: #{$!}"
@@ -284,11 +276,7 @@ namespace :shipping_update do
             shipment.push_us_tracking_id store, order_id, tracking_id.text.strip
           end
         end
-        if shipment.all_shipped?
-          ship_log "shipped[#{shipment.id}]"
-          shipment.complete_ship
-          shipment.shipment_registration
-        end
+        shipment.check_and_ship
       end
     rescue Exception => e
       ship_log "error occured: #{$!}"

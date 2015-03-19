@@ -67,6 +67,7 @@ Spree::Shipment.class_eval do
       #Rails.logger.info "shipping-update:#{res}"
       #forwarding_id = page['warehouseordno']
       #kr_tracking_id = page['transnum']
+      return # skip theclass order
     else
       @the82 ||= Spree::The82Api.new
       page = @the82.post_shipment_registration self

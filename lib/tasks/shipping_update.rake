@@ -168,6 +168,7 @@ namespace :shipping_update do
   task the82_api_update: :environment do
     begin
       api = Spree::The82Api.new
+      theclass_api = Spree::TheclassApi.new
       Spree::Shipment.
         where(after_shipped_state: ['local_delivery', 'local_delivery_complete', 'DC_partially_stocked', 'DC_stocked', 'overseas_delivery', 'customs', 'domestic_delivery']).
         where.not(:state => 'canceled').
@@ -288,7 +289,7 @@ namespace :shipping_update do
   desc "test"
   task tmp_test: :environment do
     api = Spree::TheclassApi.new
-    ship = Spree::Order.find_by_number('R401831899').shipments.first
-    api.shipment_registration ship
+    ship = Spree::Order.find_by_number('R400511911').shipments.first
+    puts api.shipment_registration ship
   end
 end

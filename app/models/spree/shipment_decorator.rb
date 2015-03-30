@@ -62,12 +62,13 @@ Spree::Shipment.class_eval do
   def shipment_registration
     return if self.json_store_order_id.nil?
     if order.completed_at > DateTime.new(2015,3,18,11,00).in_time_zone('Seoul')
-      @theclass ||= Spree::TheClassApi.new
+      @theclass ||= Spree::TheclassApi.new
       res = @theclass.shipment_registration self
       Rails.logger.info "shipping-update:#{res}"
       forwarding_id = res['order_no']
-      status = @theclass.shipment_status self
-      kr_tracking_id = status['trace_no']
+      status = @theclass.shipment_status self, forwarding_id
+      Rails.logger.info "shipping-update:#{status},#{forwarding_id}"
+      kr_tracking_id = status['order_info']['trace_no']
     else
       @the82 ||= Spree::The82Api.new
       page = @the82.post_shipment_registration self
@@ -75,6 +76,7 @@ Spree::Shipment.class_eval do
       forwarding_id = page['warehouseordno']
       kr_tracking_id = page['transnum']
     end
+    Rails.logger.info "shipping-update[#{forwarding_id}][#{kr_tracking_id}]"
     raise "shipment_registration failed!" if forwarding_id.nil? or kr_tracking_id.nil?
     self.update_columns(forwarding_id: forwarding_id)
     self.update_columns(json_kr_tracking_id: kr_tracking_id)

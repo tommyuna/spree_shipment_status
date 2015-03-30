@@ -15,6 +15,7 @@ namespace :shipping_update do
       scraper = Spree::AmazonScraper.new
       raise "Login failed!" unless scraper.login
       Spree::Shipment.
+        includes(:order)
         where(state: ['pending', 'ready']).
         where.not(:state => 'canceled').
         where.not(json_store_order_id: nil).
@@ -162,6 +163,56 @@ namespace :shipping_update do
       send_error_email e
     end
   end
+  desc "getting information from theclass"
+  task theclass_api_update: :environment do
+    begin
+      api = Spree::TheclassApi.new
+      Spree::Shipment.
+        where(after_shipped_state: ['local_delivery', 'local_delivery_complete', 'DC_partially_stocked', 'DC_stocked', 'overseas_delivery', 'customs', 'domestic_delivery']).
+        where.not(:state => 'canceled').
+        joins(:order).
+        where('spree_orders.completed_at > ?', DateTime.new(2015,3,18,11,00).in_time_zone('Seoul'))
+        find_each do |shipment|
+        if shipment.forwarding_id.nil?
+          send_notify_email "forwarding_id is nil", "orderid: #{shipment.order.number} / created_at:#{shipment.created_at}"
+          next
+        end
+        ship_log "processing shipment:#{shipment.id}"
+        if (1.second.ago - shipment.created_at) > 10.days
+          ship_log "10days passed:#{shipment.id}"
+          send_notify_email "check shipment status", "orderid: #{shipment.order.number} / created_at:#{shipment.created_at}"
+        end
+        status = api.shipment_status shipment
+        status = status.try([], 'order_info').try([], 'd_status')
+        raise "no return from the class for status check" if status.nil?
+        case status
+        when "0" #구매대기
+        when "1" #배송신청
+        when "4" #일부입고
+          shipment.partially_complete_DC_stock
+        when "5" #입고완료
+          shipment.complete_DC_stock
+        when "6" #포장완료
+          shipment.complete_DC_stock
+        when "7" #출고완료
+          shipment.start_oversea_delivery
+        when "8" #통관진행중
+          shipment.complete_oversea_delivery
+        when "9" #국내배송중
+          shipment.start_domestic_delivery
+        when "10" #배송완료
+          shipment.complete_domestic_delivery
+        else
+          ship_log "check status code:#{status}"
+          send_notify_email "check shipment status", "orderid: #{shipment.order.number} / created_at:#{shipment.created_at}"
+        end
+      end
+    rescue Exception => e
+      ship_log "error occured: #{$!}"
+      ship_log e.backtrace
+      send_error_email e
+    end
+  end
 
   desc "getting information from the82"
   task the82_api_update: :environment do
@@ -170,7 +221,9 @@ namespace :shipping_update do
       Spree::Shipment.
         where(after_shipped_state: ['local_delivery', 'local_delivery_complete', 'DC_partially_stocked', 'DC_stocked', 'overseas_delivery', 'customs', 'domestic_delivery']).
         where.not(:state => 'canceled').
-        where('created_at >= ?', DateTime.new(2014,12,6)).
+        where('spree_shipments.created_at >= ?', DateTime.new(2014,12,6)).
+        joins(:order).
+        where('spree_orders.completed_at < ?', DateTime.new(2015,3,18,11,00).in_time_zone('Seoul'))
         find_each do |shipment|
         if shipment.forwarding_id.nil?
           send_notify_email "forwarding_id is nil", "orderid: #{shipment.order.number} / created_at:#{shipment.created_at}"
@@ -286,17 +339,8 @@ namespace :shipping_update do
   end
   desc "test"
   task tmp_test: :environment do
-      scraper = Spree::GmailScraper.new
-      raise "Login failed! #{scraper.login_info['userid']}/#{scraper.login_info['password']}" unless scraper.login
-      query = ['FROM', scraper.addresses['foot_locker_shipment_confirm'],
-               #'SINCE', scraper.get_imap_date(-30),
-               'SUBJECT', scraper.subjects['foot_locker_shipment_confirm'],
-               'BODY', '12226294']
-      uids = scraper.get_uid_list(query)
-      next if uids.empty?
-      doc = scraper.get_html_doc uids.first
-      tracking_id = scraper.get_single_text(doc, scraper.selectors['foot_locker_shipment_confirm_tracking_id'])
-      raise "not found tracking id footlocker:#{order_id}" if tracking_id.nil?
-      puts "#{tracking_id.text.strip}"
+    api = Spree::TheclassApi.new
+    ship = Spree::Order.find_by_number('R400511911').shipments.first
+    puts api.shipment_registration ship
   end
 end

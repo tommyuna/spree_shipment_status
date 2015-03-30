@@ -140,13 +140,6 @@ module Spree
     end
 
     private
-    def convert_korean_name name
-      english_name = ""
-      name.each_char do |ch|
-        english_name += "#{@korean_name_convert[ch]} " if @korean_name_convert[ch].present?
-      end
-      english_name.strip
-    end
 
     def replace_comma string
       if string.nil? or string.empty?

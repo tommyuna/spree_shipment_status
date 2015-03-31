@@ -13,7 +13,7 @@ module Spree
     def shipment_status shipment, forwarding_id = nil
       return unless shipment.forwarding_id and forwarding_id
       id = shipment.forwarding_id
-      id = forwarding_id unless id.nil? and id.empty?
+      id = forwarding_id if id.nil? or id.empty?
       res = RestClient.get @url, {:params => { "apikey" => "getdelivery", "uid" => @uid, "confmKey" => @confmKey, "order_no" => id }}
       rtn = JSON.parse(res.strip[1..-3])
       rtn

@@ -63,7 +63,7 @@ module Spree
         if size.empty?
           options[item_info_name][:item_size] = "N/A"
         else
-          options[item_info_name][:item_size] = size.name
+          options[item_info_name][:item_size] = size.first.name
         end
         options[item_info_name][:item_url] = "https://gosnapshop.com/products/#{prod.slug}"
         options[item_info_name][:item_img] = prod.try(:images).try(:first).try(:attachment).url("large")

@@ -173,7 +173,7 @@ namespace :shipping_update do
         where(after_shipped_state: ['local_delivery', 'local_delivery_complete', 'DC_partially_stocked', 'DC_stocked', 'overseas_delivery', 'customs', 'domestic_delivery']).
         where.not(:state => 'canceled').
         joins(:order).
-        where('spree_orders.completed_at > ?', DateTime.new(2015,3,18,11,00).in_time_zone('Seoul'))
+        where('spree_orders.completed_at > ?', DateTime.new(2015,3,18,11,00).in_time_zone('Seoul')).
         find_each do |shipment|
         if shipment.forwarding_id.nil?
           send_notify_email "forwarding_id is nil", "orderid: #{shipment.order.number} / created_at:#{shipment.created_at}"
@@ -225,7 +225,7 @@ namespace :shipping_update do
         where.not(:state => 'canceled').
         where('spree_shipments.created_at >= ?', DateTime.new(2014,12,6)).
         joins(:order).
-        where('spree_orders.completed_at < ?', DateTime.new(2015,3,18,11,00).in_time_zone('Seoul'))
+        where('spree_orders.completed_at < ?', DateTime.new(2015,3,18,11,00).in_time_zone('Seoul')).
         find_each do |shipment|
         if shipment.forwarding_id.nil?
           send_notify_email "forwarding_id is nil", "orderid: #{shipment.order.number} / created_at:#{shipment.created_at}"

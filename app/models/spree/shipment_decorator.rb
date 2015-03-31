@@ -68,7 +68,7 @@ Spree::Shipment.class_eval do
       forwarding_id = res['order_no']
       status = @theclass.shipment_status self, forwarding_id
       Rails.logger.info "shipping-update:#{status},#{forwarding_id}"
-      kr_tracking_id = status['order_info']['trace_no']
+      kr_tracking_id = status['order_info']['trace_no'] unless status.nil?
     else
       @the82 ||= Spree::The82Api.new
       page = @the82.post_shipment_registration self

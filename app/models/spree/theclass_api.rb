@@ -14,6 +14,7 @@ module Spree
       return unless shipment.forwarding_id and forwarding_id
       id = shipment.forwarding_id
       id = forwarding_id if id.nil? or id.empty?
+      Rails.logger.info "shipping-update:id#{id}"
       res = RestClient.get @url, {:params => { "apikey" => "getdelivery", "uid" => @uid, "confmKey" => @confmKey, "order_no" => id }}
       rtn = JSON.parse(res.strip[1..-3])
       rtn

@@ -58,11 +58,9 @@ module Spree
     end
 
     def convert_korean_name name
-      english_name = ""
-      name.each_char do |ch|
-        english_name += "#{@korean_name_convert[ch]} " if @korean_name_convert[ch].present?
-      end
-      english_name.strip
+      name.each_char.inject([]) do |ary, ch|
+        ary << @korean_name_convert[ch]
+      end.compact.join(' ')
     end
 
     private

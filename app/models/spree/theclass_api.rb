@@ -43,8 +43,7 @@ module Spree
       options[:post_memo] = address.other_comment if address.other_comment.present?
       options[:member_ordno] = order.number
       options['item_info'] = []
-      i = 0
-      order.line_items.each do |li|
+      order.line_items.each_with_index do |li, i|
         var = li.variant
         prod = li.product
         item_info_name = "item_info[#{i}]"
@@ -75,7 +74,6 @@ module Spree
           options[item_info_name][:item_trno] = trackno
         end
         options[item_info_name][:item_brand] = prod.brand
-        i += 1
       end
       options
     end

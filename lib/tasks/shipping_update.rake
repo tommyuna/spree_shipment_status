@@ -15,7 +15,7 @@ namespace :shipping_update do
       scraper = Spree::AmazonScraper.new
       raise "Login failed!" unless scraper.login
       Spree::Shipment.
-        includes(:order)
+        includes(:order).
         where(state: ['pending', 'ready']).
         where.not(:state => 'canceled').
         where.not(json_store_order_id: nil).
@@ -79,6 +79,7 @@ namespace :shipping_update do
       ship_log "start gap_shipping_scraping"
       scraper = Spree::GapScraper.new
       Spree::Shipment.
+        includes(:order).
         where(state: ['pending', 'ready']).
         where.not(:state => 'canceled').
         where.not(json_store_order_id: nil).
@@ -129,6 +130,7 @@ namespace :shipping_update do
       ship_log "start packagetrackr_scraping"
       scraper = Spree::PackagetrackrScraper.new
       Spree::Shipment.
+        includes(:order).
         where(:state => 'shipped').
         where(:after_shipped_state => 'local_delivery').
         where.not(json_store_order_id: nil).

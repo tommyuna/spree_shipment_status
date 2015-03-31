@@ -186,7 +186,7 @@ namespace :shipping_update do
         end
         status = api.shipment_status shipment
         ship_log "status:#{status}"
-        status = status.try([], 'order_info').try([], 'd_status')
+        status = status.try(:[], 'order_info').try(:[], 'd_status')
         raise "no return from the class for status check" if status.nil?
         case status
         when "0" #구매대기

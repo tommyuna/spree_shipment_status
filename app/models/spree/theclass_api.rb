@@ -11,7 +11,7 @@ module Spree
       @confmKey = 'fZ9bPqkmAgw47vFruRlsa5VUy'
     end
     def shipment_status shipment, forwarding_id = nil
-      return unless shipment.forwarding_id and forwarding_id
+      return unless shipment.forwarding_id or forwarding_id
       id = shipment.forwarding_id
       id = forwarding_id if id.nil? or id.empty?
       Rails.logger.info "shipping-update:id#{id}"

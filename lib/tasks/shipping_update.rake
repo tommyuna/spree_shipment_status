@@ -185,6 +185,7 @@ namespace :shipping_update do
           send_notify_email "check shipment status", "orderid: #{shipment.order.number} / created_at:#{shipment.created_at}"
         end
         status = api.shipment_status shipment
+        ship_log "status:#{status}"
         status = status.try([], 'order_info').try([], 'd_status')
         raise "no return from the class for status check" if status.nil?
         case status
@@ -343,6 +344,6 @@ namespace :shipping_update do
   task tmp_test: :environment do
     api = Spree::TheclassApi.new
     ship = Spree::Order.find_by_number('R400511911').shipments.first
-    puts api.shipment_registration ship
+    puts api.shipment_status ship
   end
 end

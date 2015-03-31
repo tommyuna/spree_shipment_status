@@ -174,6 +174,7 @@ namespace :shipping_update do
         where.not(:state => 'canceled').
         joins(:order).
         where('spree_orders.completed_at > ?', DateTime.new(2015,3,18,11,00).in_time_zone('Seoul')).
+        readonly(false).
         find_each do |shipment|
         if shipment.forwarding_id.nil?
           send_notify_email "forwarding_id is nil", "orderid: #{shipment.order.number} / created_at:#{shipment.created_at}"
@@ -190,7 +191,9 @@ namespace :shipping_update do
         raise "no return from the class for status check" if status.nil?
         case status
         when "0" #구매대기
+          #
         when "1" #배송신청
+          #
         when "4" #일부입고
           shipment.partially_complete_DC_stock
         when "5" #입고완료
@@ -227,6 +230,7 @@ namespace :shipping_update do
         where('spree_shipments.created_at >= ?', DateTime.new(2014,12,6)).
         joins(:order).
         where('spree_orders.completed_at < ?', DateTime.new(2015,3,18,11,00).in_time_zone('Seoul')).
+        readonly(false).
         find_each do |shipment|
         if shipment.forwarding_id.nil?
           send_notify_email "forwarding_id is nil", "orderid: #{shipment.order.number} / created_at:#{shipment.created_at}"
@@ -344,6 +348,6 @@ namespace :shipping_update do
   task tmp_test: :environment do
     api = Spree::TheclassApi.new
     ship = Spree::Order.find_by_number('R400511911').shipments.first
-    puts api.shipment_status ship
+    ship.start_oversea_delivery
   end
 end

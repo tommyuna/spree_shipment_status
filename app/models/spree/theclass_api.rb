@@ -33,7 +33,7 @@ module Spree
       options = {}
       options[:d_gubun] = 1
       options[:branch] = 1
-      options[:cons_nkor] = convert_korean_name(address.firstname)
+      options[:cons_nkor] = address.firstname
       if address.customs_no.present?
         options[:cons_certno] = address.customs_no
       else

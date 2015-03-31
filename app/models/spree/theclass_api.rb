@@ -13,7 +13,7 @@ module Spree
     def shipment_status shipment, forwarding_id = nil
       return unless shipment.forwarding_id and forwarding_id
       id = shipment.forwarding_id
-      id = forwarding_id unless id.nil?
+      id = forwarding_id unless id.nil? and id.empty?
       res = RestClient.get @url, {:params => { "apikey" => "getdelivery", "uid" => @uid, "confmKey" => @confmKey, "order_no" => id }}
       rtn = JSON.parse(res.strip[1..-3])
       rtn
@@ -46,7 +46,6 @@ module Spree
       options[:cons_addr2] = address.address2
       options[:post_memo] = address.other_comment if address.other_comment.present?
       options[:member_ordno] = order.number
-      options['item_info'] = []
       order.line_items.each_with_index do |li, i|
         var = li.variant
         prod = li.product

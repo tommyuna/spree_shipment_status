@@ -39,15 +39,15 @@ namespace :shipping_update do
             addr = "#{scraper.addresses['order_status']}#{order_id}"
             ship_log "addr:#{addr}"
             order_status_page = scraper.get_html_doc addr
-            raise "order status page not found! store_order_id:#{shipment.id}" if order_status_page == nil
+            raise "order status page not found! store_order_id:#{shipment.order.number}" if order_status_page == nil
             us_tracking_ids = []
             shipment_divs = scraper.get_multiple_text(order_status_page, scraper.selectors['shipping_div'])
             ship_log "shipment_divs:#{shipment_divs.count}"
-            raise "shipment_divs doesn't exist:#{shipment.id}" if shipment_divs.count == 0
+            raise "shipment_divs doesn't exist:#{shipment.order.number}" if shipment_divs.count == 0
             shipment_divs.each do |page|
               order_status = page.at_css(scraper.selectors['shipping_status'])
               order_status = page.at_css(scraper.selectors['shipping_status_2']) if order_status.nil?
-              raise "couldn't get order status in amazon! store_order_id:#{order_id}" if order_status.nil?
+              raise "couldn't get order status in amazon! store_order_id:#{order_id}:#{shipment.order.number}" if order_status.nil?
               ship_log "order_status:[#{order_status.text.strip}]"
               state_array = ['Shipped',
                              'Out for delivery',

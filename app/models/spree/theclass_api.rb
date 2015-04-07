@@ -74,10 +74,10 @@ module Spree
         unless shipment.json_store_order_id[prod.merchant].nil? or shipment.json_store_order_id[prod.merchant].empty?
           orderno = shipment.json_store_order_id[prod.merchant].join(" ")
           trackno = shipment.json_us_tracking_id[prod.merchant].map{|k,v|v}.join(" ")
-          if options[item_info_name][:item_orderno].present?
-            options[item_info_name][:item_orderno] = orderno
-          else
+          if orderno.nil?
             options[item_info_name][:item_orderno] = "N/A"
+          else
+            options[item_info_name][:item_orderno] = orderno
           end
           options[item_info_name][:item_trno] = trackno
         end

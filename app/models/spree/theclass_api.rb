@@ -70,7 +70,7 @@ module Spree
           options[item_info_name][:item_size] = size.first.name
         end
         options[item_info_name][:item_url] = "https://gosnapshop.com/products/#{prod.slug}"
-        options[item_info_name][:item_img] = prod.try(:images).try(:first).try(:attachment).url("large")
+        options[item_info_name][:item_img] = prod.try(:images).try(:first).try(:attachment).try(:url, "large")
         unless shipment.json_store_order_id[prod.merchant].nil? or shipment.json_store_order_id[prod.merchant].empty?
           orderno = shipment.json_store_order_id[prod.merchant].join(" ")
           trackno = shipment.json_us_tracking_id[prod.merchant].map{|k,v|v}.join(" ")

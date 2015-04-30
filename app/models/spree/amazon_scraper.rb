@@ -66,6 +66,7 @@ module Spree
       addr = (tracking_link.attribute 'href').value
       page = @agent.get addr
       tracking_id = Nokogiri::HTML(page.body).at_css self.selectors['us_tracking_id']
+      tracking_id ||= Nokogiri::HTML(page.body).at_css self.selectors['us_tracking_id_2']
       return tracking_id.text if tracking_id.present?
       "N/A"
     end

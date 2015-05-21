@@ -89,7 +89,7 @@ module Spree
       taxon_permalink = product.taxons.pluck(:permalink).join
       if taxon_permalink.include? "shoes" 
         return 64
-      elsif taxon_permalink.include? "watch" or taxon_permalink.include? "watches"
+      elsif taxon_permalink.include? "watch"
         return 91
       elsif taxon_permalink.include? "jewelry"
         return 71

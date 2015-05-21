@@ -87,14 +87,34 @@ module Spree
     end
     def get_hs_code product
       taxon_permalink = product.taxons.pluck(:permalink).join
-      if taxon_permalink.include? "shoes"
+      if taxon_permalink.include? "shoes" 
         return 64
-      elsif taxon_permalink.include? "watch"
+      elsif taxon_permalink.include? "watch" or taxon_permalink.include? "watches"
         return 91
       elsif taxon_permalink.include? "jewelry"
         return 71
       elsif taxon_permalink.include? "hat"
         return 65
+      elsif taxon_permalink.include? "toys"
+        return 95
+      elsif taxon_permalink.include? "bag" or taxon_permalink.include? "wallets"
+        return 42
+      elsif taxon_permalink.include? "eyewear"
+        return 90
+      elsif taxon_permalink.include? "belt" or taxon_permalink.include? "gloves" or taxon_permalink.include? "socks"
+        return 61  
+      elsif taxon_permalink.include? "scarves" or taxon_permalink.include? "tie"
+        return 62
+      elsif taxon_permalink.include? "hats"
+        return 65
+      elsif taxon_permalink.include? "tech"
+        return 85
+      elsif taxon_permalink.include? "dining"
+        return 39
+      elsif taxon_permalink.include? "book"
+        return 48
+      elsif taxon_permalink.include? "decor" or taxon_permalink.include? "gifts"
+        return 94
       end
       62 #clothing
     end

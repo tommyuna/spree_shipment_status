@@ -115,6 +115,10 @@ module Spree
         return 48
       elsif taxon_permalink.include? "decor" or taxon_permalink.include? "gifts"
         return 94
+      elsif taxon_permalink.include? "cookwear" or taxon_permalink.include? "cutlery" or taxon_permalink.include? "tool" or taxon_permalink.include? "organization" or taxon_permalink.include? "bakewear"
+        return 82
+      elsif taxon_permalink.include? "tablewear"
+        return 69
       end
       62 #clothing
     end

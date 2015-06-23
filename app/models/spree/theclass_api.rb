@@ -95,7 +95,7 @@ module Spree
         return 71
       elsif taxon_permalink.include? "hat"
         return 65
-      elsif taxon_permalink.include? "toys"
+      elsif taxon_permalink.include? "toys" or taxon_permalink.include? "lego"
         return 95
       elsif taxon_permalink.include? "bag" or taxon_permalink.include? "wallets"
         return 42
@@ -115,10 +115,16 @@ module Spree
         return 48
       elsif taxon_permalink.include? "decor" or taxon_permalink.include? "gifts"
         return 94
+      elsif taxon_permalink.include? "vaccum-bottle" or taxon_permalink.include? "bath-acc" or taxon_permalink.include? "brushes" or taxon_permalink.include? "hair-tools"
+        return 96
       elsif taxon_permalink.include? "cookwear" or taxon_permalink.include? "cutlery" or taxon_permalink.include? "tool" or taxon_permalink.include? "organization" or taxon_permalink.include? "bakewear"
         return 82
       elsif taxon_permalink.include? "tablewear"
         return 69
+      elsif taxon_permalink.include? "soaps" or taxon_permalink.include? "styling" or taxon_permalink.include? "scents"
+        return 34
+      elsif taxon_permalink.include? "men-grooming" or taxon_permalink.include? "bath-bodycare" or taxon_permalink.include? "fragrance" or taxon_permalink.include? "haircare" or taxon_permalink.include? "makeup" or taxon_permalink.include? "skincare" or taxon_permalink.include? "tools-accessories" or taxon_permalink.include? "nail"
+        return 33
       end
       62 #clothing
     end

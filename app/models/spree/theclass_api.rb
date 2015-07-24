@@ -125,6 +125,8 @@ module Spree
         return 34
       elsif taxon_permalink.include? "men-grooming" or taxon_permalink.include? "bath-bodycare" or taxon_permalink.include? "fragrance" or taxon_permalink.include? "haircare" or taxon_permalink.include? "makeup" or taxon_permalink.include? "skincare" or taxon_permalink.include? "tools-accessories" or taxon_permalink.include? "nail"
         return 33
+      elsif taxon_permalink.include? "sports-hobby"
+        return 95
       end
       62 #clothing
     end

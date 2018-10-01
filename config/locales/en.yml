@@ -1,5 +1,22 @@
-# Sample localization file for English. Add more files in this directory for other locales.
-# See https://github.com/svenfuchs/rails-i18n/tree/master/rails%2Flocale for starting points.
-
 en:
-  hello: "Hello world"
+  spree:
+    after_shipped_state: Detailed delivery status
+    after_shipped_states:
+      before_ship: U.S. seller is shipping to U.S. logistics center
+      local_delivery: U.S. seller has shipped to U.S. distribution center
+      local_delivery_complete: Arrived at U.S. Logistics Center
+      DC_partially_stocked: Arrived at U.S. Logistics Center/Being inspected
+      DC_stocked: Next flight to South Korea
+      overseas_delivery: In flight to South Korea
+      customs: Arriving in Incheon and Customs clearance
+      domestic_delivery: Domestic delivery
+      delivered: Order Delivered
+      canceled: Order Canceled
+      returned: Order Returned
+    order_state_and_place:
+      complete: Complete
+      complete_failed: Complete (failed)
+      canceled: Canceled
+      canceled_failed: Canceled (failed)
+      returned: Returned
+      returned_failed: Returned (failed)
